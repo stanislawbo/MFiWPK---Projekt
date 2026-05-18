@@ -13,10 +13,7 @@ class LogicLang:
     def assign(self, name, value):
         if name not in self.variables:
             raise ValueError(f"Zmienna '{name}' nie istnieje") 
-        if self.is_expression(value):
-            print(f"[DEBUG] {name} jest wyrażeniem")
-        else:
-            print(f"[DEBUG] {name} jest wartością")
+        value = self.to_cnf(value)
         self.variables[name] = value
 
     def run(self, code: str):
@@ -54,52 +51,52 @@ class LogicLang:
     
     def eliminate_implication(self, expr: str) -> str:
         expr = expr.strip()
-        while "->" in expr:
-            left, right = expr.split("->")
-            left = left.strip()
-            right = right.strip()
-        if left.startswith("~"):
-            new_left = left[1:]   # ~~x nie robimy tutaj uproszczeń
-        else:
-            new_left = "~" + left
-        expr = f"({new_left} | {right})"
-        return expr
 
-    def apply_de_morgan(expr: str) -> str:
-        expr = expr.strip()
+        if "->" not in expr:
+            return expr
 
-        # ~(A & B)
-        if expr.startswith("~(") and expr.endswith(")"):
-            inside = expr[2:-1].strip()
-
-        # koniunkcja
-        if "&" in inside:
-            left, right = inside.split("&", 1)
-            return f"~{left.strip()} | ~{right.strip()}"
-
-        # alternatywa
-        if "|" in inside:
-            left, right = inside.split("|", 1)
-            return f"~{left.strip()} & ~{right.strip()}"
-
-        return expr
-
-    def distribute_or(expr: str) -> str:
-        expr = expr.strip()
-
-        # A | (B & C)
-        if "|" in expr and "&" in expr:
-            left, right = expr.split("|", 1)
+        left, right = expr.split("->", 1)
 
         left = left.strip()
         right = right.strip()
 
-        # tylko przypadek: (B & C)
-        if right.startswith("(") and right.endswith(")") and "&" in right:
-            inside = right[1:-1]
-            b, c = inside.split("&", 1)
+        if left.startswith("~"):
+            new_left = left[1:]
+        else:
+            new_left = "~" + left
 
-            return f"({left} | {b.strip()}) & ({left} | {c.strip()})"
+        return f"({new_left} | {right})"
+
+    def apply_de_morgan(self, expr: str) -> str:
+        expr = expr.strip()
+
+        if expr.startswith("~(") and expr.endswith(")"):
+            inside = expr[2:-1].strip()
+
+            if "&" in inside:
+                left, right = inside.split("&", 1)
+                return f"~{left.strip()} | ~{right.strip()}"
+
+            if "|" in inside:
+                left, right = inside.split("|", 1)
+                return f"~{left.strip()} & ~{right.strip()}"
+
+        return expr
+
+    def distribute_or(self, expr: str) -> str:
+        expr = expr.strip()
+
+        if "|" in expr and "&" in expr:
+            left, right = expr.split("|", 1)
+
+            left = left.strip()
+            right = right.strip()
+
+            if right.startswith("(") and right.endswith(")") and "&" in right:
+                inside = right[1:-1]
+                b, c = inside.split("&", 1)
+
+                return f"({left} | {b.strip()}) & ({left} | {c.strip()})"
 
         return expr
         
