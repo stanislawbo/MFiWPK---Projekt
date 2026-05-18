@@ -1,13 +1,21 @@
+from os import name
+
+
 class LogicLang:
     # Ustalamy zbiór zmiennych, które będą używane w logice
     def __init__(self):
         self.variables = {}
 
+    def is_expression(self, value: str) -> bool:
+        return any(op in value for op in ["&", "|", "~", "->", "<->"])
+
     def assign(self, name, value):
-        if value not in ("zero", "jeden"):
-            raise ValueError("Dozwolone tylko 'zero' albo 'jeden'")
         if name not in self.variables:
-            raise ValueError(f"Zmienna '{name}' nie istnieje")
+            raise ValueError(f"Zmienna '{name}' nie istnieje") 
+        if self.is_expression(value):
+            print(f"[DEBUG] {name} jest wyrażeniem")
+        else:
+            print(f"[DEBUG] {name} jest wartością")
         self.variables[name] = value
 
     def run(self, code: str):
