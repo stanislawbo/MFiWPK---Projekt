@@ -15,9 +15,20 @@ class LogicLang:
             parts = line.split()
 
             # Deklarujemy zmienną
-             if parts[0] == "var":
+            if parts[0] == "var":
                 var_name = parts[1]
                 self.variables.add(var_name)
                 if len(parts) >= 3:
                     raise ValueError(f"Nieprawidłowa deklaracja zmiennej: {line}")
                 name = parts[1]
+                
+                # Sprawdzamy, czy zmienna została już zadeklarowana
+                if name in self.variables:
+                    raise ValueError(f"Zmienna '{name}' już istnieje.")
+                
+                self.variables.add(name)
+
+            else:
+                raise ValueError(f"Nieznana instrukcja: {line}")
+            
+            return self
