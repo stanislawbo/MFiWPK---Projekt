@@ -38,3 +38,10 @@ var y
 var z"""
 logic.run(code)
 print(logic.variables)  # Output: {'x', 'y', 'z'}
+
+# Operatory
+# ~a  - negacja
+# a & b - koniunkcja
+# a | b - alternatywa
+# a -> b - implikacja
+# a <-> b - równoważność
