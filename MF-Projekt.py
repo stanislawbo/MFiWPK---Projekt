@@ -12,4 +12,12 @@ class LogicLang:
             # strip() usuwa białe znaki z początku i końca linii
             if not line:
                 continue  # Pomijamy puste linie
-            self.process_line(line)
+            parts = line.split()
+
+            # Deklarujemy zmienną
+             if parts[0] == "var":
+                var_name = parts[1]
+                self.variables.add(var_name)
+                if len(parts) >= 3:
+                    raise ValueError(f"Nieprawidłowa deklaracja zmiennej: {line}")
+                name = parts[1]
