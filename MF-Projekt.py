@@ -58,7 +58,7 @@ var y
 var z
 x = jeden
 y = zero
-z = zero"""
+z = x & y"""
 logic.run(code)
 print(logic.variables)  # Output: {'x', 'y', 'z'}
 
@@ -83,21 +83,5 @@ def eliminate_implication(expr: str) -> str:
     else:
         new_left = "~" + left
     return f"{new_left} | {right}"
-
-def eliminate_iff(expr: str) -> str:
-    expr = expr.strip()
-
-    if "<->" not in expr:
-        return expr
-
-    left, right = expr.split("<->")
-
-    left = left.strip()
-    right = right.strip()
-
-    part1 = f"({left} & {right})"
-    part2 = f"(~{left} & ~{right})"
-
-    return f"{part1} | {part2}"
 
 # Zmienne mogą być już deklarowane, potrzeba teraz jedynie aby były one definiowane.
