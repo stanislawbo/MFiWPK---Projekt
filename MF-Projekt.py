@@ -50,12 +50,61 @@ class LogicLang:
                 # Sprawdzamy, czy zmienna została już zadeklarowana
             else:
                 raise ValueError(f"Nieznana instrukcja: {line}")
-        
-    
-
-
         return self
+    
+    def eliminate_implication(self, expr: str) -> str:
+        expr = expr.strip()
+        while "->" in expr:
+            left, right = expr.split("->")
+            left = left.strip()
+            right = right.strip()
+        if left.startswith("~"):
+            new_left = left[1:]   # ~~x nie robimy tutaj uproszczeń
+        else:
+            new_left = "~" + left
+        expr = f"({new_left} | {right})"
+        return expr
+
+    def apply_de_morgan(expr: str) -> str:
+        expr = expr.strip()
+
+        # ~(A & B)
+        if expr.startswith("~(") and expr.endswith(")"):
+            inside = expr[2:-1].strip()
+
+        # koniunkcja
+        if "&" in inside:
+            left, right = inside.split("&", 1)
+            return f"~{left.strip()} | ~{right.strip()}"
+
+        # alternatywa
+        if "|" in inside:
+            left, right = inside.split("|", 1)
+            return f"~{left.strip()} & ~{right.strip()}"
+
+        return expr
+
+    def distribute_or(expr: str) -> str:
+        expr = expr.strip()
+
+        # A | (B & C)
+        if "|" in expr and "&" in expr:
+            left, right = expr.split("|", 1)
+
+        left = left.strip()
+        right = right.strip()
+
+        # tylko przypadek: (B & C)
+        if right.startswith("(") and right.endswith(")") and "&" in right:
+            inside = right[1:-1]
+            b, c = inside.split("&", 1)
+
+            return f"({left} | {b.strip()}) & ({left} | {c.strip()})"
+
+        return expr
         
+
+
 # Przykładowe użycie
 logic = LogicLang()
 code = """var x
@@ -74,56 +123,4 @@ print(logic.variables)  # Output: {'x', 'y', 'z'}
 # a <-> b - równoważność
 
 # Jako, że negacja, koniunkcja i alternatywa są jedynymi symbolami w postaci CNF, pozostaje rozpisac alternatywe i równoważnosc na koniunkcje i negacje.
-
-def eliminate_implication(expr: str) -> str:
-    expr = expr.strip()
-    while "->" in expr:
-        left, right = expr.split("->")
-        left = left.strip()
-        right = right.strip()
-    if left.startswith("~"):
-        new_left = left[1:]   # ~~x nie robimy tutaj uproszczeń
-    else:
-        new_left = "~" + left
-    expr = f"({new_left} | {right})"
-    return expr
-
-def apply_de_morgan(expr: str) -> str:
-    expr = expr.strip()
-
-    # ~(A & B)
-    if expr.startswith("~(") and expr.endswith(")"):
-        inside = expr[2:-1].strip()
-
-        # koniunkcja
-        if "&" in inside:
-            left, right = inside.split("&", 1)
-            return f"~{left.strip()} | ~{right.strip()}"
-
-        # alternatywa
-        if "|" in inside:
-            left, right = inside.split("|", 1)
-            return f"~{left.strip()} & ~{right.strip()}"
-
-    return expr
-
-def distribute_or(expr: str) -> str:
-    expr = expr.strip()
-
-    # A | (B & C)
-    if "|" in expr and "&" in expr:
-        left, right = expr.split("|", 1)
-
-        left = left.strip()
-        right = right.strip()
-
-        # tylko przypadek: (B & C)
-        if right.startswith("(") and right.endswith(")") and "&" in right:
-            inside = right[1:-1]
-            b, c = inside.split("&", 1)
-
-            return f"({left} | {b.strip()}) & ({left} | {c.strip()})"
-
-    return expr
-
 # Zmienne mogą być już deklarowane, potrzeba teraz jedynie aby były one definiowane.
