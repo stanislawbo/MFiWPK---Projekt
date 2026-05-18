@@ -1,3 +1,4 @@
+from ast import expr
 from os import name
 
 
@@ -76,15 +77,15 @@ print(logic.variables)  # Output: {'x', 'y', 'z'}
 
 def eliminate_implication(expr: str) -> str:
     expr = expr.strip()
-    if "->" not in expr:
-        return expr
-    left, right = expr.split("->")
-    left = left.strip()
-    right = right.strip()
+    while "->" in expr:
+        left, right = expr.split("->")
+        left = left.strip()
+        right = right.strip()
     if left.startswith("~"):
         new_left = left[1:]   # ~~x nie robimy tutaj uproszczeń
     else:
         new_left = "~" + left
-    return f"{new_left} | {right}"
+    expr = f"({new_left} | {right})"
+    return expr
 
 # Zmienne mogą być już deklarowane, potrzeba teraz jedynie aby były one definiowane.
