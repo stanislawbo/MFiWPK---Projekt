@@ -116,9 +116,8 @@ class LogicLang:
 logic = LogicLang()
 code = """var x
 var y
-var z = x & y
-x = jeden
-y = zero"""
+var z = x -> (y & z)
+"""
 logic.run(code)
 print(logic.variables)  # Output: {'x', 'y', 'z'}
 
@@ -127,7 +126,5 @@ print(logic.variables)  # Output: {'x', 'y', 'z'}
 # a & b - koniunkcja
 # a | b - alternatywa
 # a -> b - implikacja
-# a <-> b - równoważność
 
-# Jako, że negacja, koniunkcja i alternatywa są jedynymi symbolami w postaci CNF, pozostaje rozpisac alternatywe i równoważnosc na koniunkcje i negacje.
-# Zmienne mogą być już deklarowane, potrzeba teraz jedynie aby były one definiowane.
+# Jako, że negacja, koniunkcja i alternatywa są jedynymi symbolami w postaci CNF, pozostaje rozpisac alternatywe na koniunkcje i negacje.
