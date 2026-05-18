@@ -37,6 +37,10 @@ class LogicLang:
                 if var_name in self.variables:
                     raise ValueError(f"Zmienna '{var_name}' już istnieje.")
                 self.variables[var_name] = None
+
+                if "=" in line:
+                    _,  value = line.split("=", 1)
+                    self.assign(var_name, value.strip())    
             elif "=" in line:
                 name, value = line.split("=")
                 name = name.strip()
