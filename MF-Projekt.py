@@ -1,11 +1,11 @@
 class LogicLang:
     # Ustalamy zbiór zmiennych, które będą używane w logice
-     def __init__(self):
+    def __init__(self):
         self.variables = set()
 
     def run(self, code: str):
         # Dzielimy kod na linie i przetwarzamy każdą linię
-        lines = code.splitlines()
+        lines = code.splitlines()[::-1]
         # splitlines() dzieli tekst na linie, tworząc listę linii
         for line in lines:
             line = line.strip()
@@ -16,19 +16,25 @@ class LogicLang:
 
             # Deklarujemy zmienną
             if parts[0] == "var":
-                var_name = parts[1]
-                self.variables.add(var_name)
                 if len(parts) >= 3:
                     raise ValueError(f"Nieprawidłowa deklaracja zmiennej: {line}")
-                name = parts[1]
+                var_name = parts[1]
                 
                 # Sprawdzamy, czy zmienna została już zadeklarowana
-                if name in self.variables:
-                    raise ValueError(f"Zmienna '{name}' już istnieje.")
+                if var_name in self.variables:
+                    raise ValueError(f"Zmienna '{var_name}' już istnieje.")
                 
-                self.variables.add(name)
+                self.variables.add(var_name)
 
             else:
                 raise ValueError(f"Nieznana instrukcja: {line}")
             
-            return self
+        return self
+        
+# Przykładowe użycie
+logic = LogicLang()
+code = """var x
+var y
+var z"""
+logic.run(code)
+print(logic.variables)  # Output: {'x', 'y', 'z'}
