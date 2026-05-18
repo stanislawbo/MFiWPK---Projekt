@@ -1,11 +1,18 @@
 class LogicLang:
     # Ustalamy zbiór zmiennych, które będą używane w logice
     def __init__(self):
-        self.variables = set()
+        self.variables = {}
+
+    def assign(self, name, value):
+        if value not in ("zero", "jeden"):
+            raise ValueError("Dozwolone tylko 'zero' albo 'jeden'")
+        if name not in self.variables:
+            raise ValueError(f"Zmienna '{name}' nie istnieje")
+        self.variables[name] = value
 
     def run(self, code: str):
         # Dzielimy kod na linie i przetwarzamy każdą linię
-        lines = code.splitlines()[::-1]
+        lines = code.splitlines()
         # splitlines() dzieli tekst na linie, tworząc listę linii
         for line in lines:
             line = line.strip()
@@ -19,23 +26,31 @@ class LogicLang:
                 if len(parts) >= 3:
                     raise ValueError(f"Nieprawidłowa deklaracja zmiennej: {line}")
                 var_name = parts[1]
-                
-                # Sprawdzamy, czy zmienna została już zadeklarowana
                 if var_name in self.variables:
                     raise ValueError(f"Zmienna '{var_name}' już istnieje.")
-                
-                self.variables.add(var_name)
-
+                self.variables[var_name] = None
+            elif "=" in line:
+                name, value = line.split("=")
+                name = name.strip()
+                value = value.strip()
+                self.assign(name, value)
+                # Sprawdzamy, czy zmienna została już zadeklarowana
             else:
                 raise ValueError(f"Nieznana instrukcja: {line}")
-            
+        
+    
+
+
         return self
         
 # Przykładowe użycie
 logic = LogicLang()
 code = """var x
 var y
-var z"""
+var z
+x = jeden
+y = zero
+z = zero"""
 logic.run(code)
 print(logic.variables)  # Output: {'x', 'y', 'z'}
 
@@ -76,3 +91,5 @@ def eliminate_iff(expr: str) -> str:
     part2 = f"(~{left} & ~{right})"
 
     return f"{part1} | {part2}"
+
+# Zmienne mogą być już deklarowane, potrzeba teraz jedynie aby były one definiowane.
