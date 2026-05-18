@@ -88,4 +88,42 @@ def eliminate_implication(expr: str) -> str:
     expr = f"({new_left} | {right})"
     return expr
 
+def apply_de_morgan(expr: str) -> str:
+    expr = expr.strip()
+
+    # ~(A & B)
+    if expr.startswith("~(") and expr.endswith(")"):
+        inside = expr[2:-1].strip()
+
+        # koniunkcja
+        if "&" in inside:
+            left, right = inside.split("&", 1)
+            return f"~{left.strip()} | ~{right.strip()}"
+
+        # alternatywa
+        if "|" in inside:
+            left, right = inside.split("|", 1)
+            return f"~{left.strip()} & ~{right.strip()}"
+
+    return expr
+
+def distribute_or(expr: str) -> str:
+    expr = expr.strip()
+
+    # A | (B & C)
+    if "|" in expr and "&" in expr:
+        left, right = expr.split("|", 1)
+
+        left = left.strip()
+        right = right.strip()
+
+        # tylko przypadek: (B & C)
+        if right.startswith("(") and right.endswith(")") and "&" in right:
+            inside = right[1:-1]
+            b, c = inside.split("&", 1)
+
+            return f"({left} | {b.strip()}) & ({left} | {c.strip()})"
+
+    return expr
+
 # Zmienne mogą być już deklarowane, potrzeba teraz jedynie aby były one definiowane.
