@@ -103,6 +103,16 @@ class LogicLang:
 
         return expr
         
+    def to_cnf(self, expr: str) -> str:
+        expr = self.eliminate_implication(expr)
+        expr = self.apply_de_morgan(expr)
+
+        prev = None
+        while prev != expr:
+            prev = expr
+            expr = self.distribute_or(expr)
+
+        return expr
 
 
 # Przykładowe użycie
