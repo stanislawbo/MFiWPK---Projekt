@@ -45,3 +45,34 @@ print(logic.variables)  # Output: {'x', 'y', 'z'}
 # a | b - alternatywa
 # a -> b - implikacja
 # a <-> b - równoważność
+
+# Jako, że negacja, koniunkcja i alternatywa są jedynymi symbolami w postaci CNF, pozostaje rozpisac alternatywe i równoważnosc na koniunkcje i negacje.
+
+def eliminate_implication(expr: str) -> str:
+    expr = expr.strip()
+    if "->" not in expr:
+        return expr
+    left, right = expr.split("->")
+    left = left.strip()
+    right = right.strip()
+    if left.startswith("~"):
+        new_left = left[1:]   # ~~x nie robimy tutaj uproszczeń
+    else:
+        new_left = "~" + left
+    return f"{new_left} | {right}"
+
+def eliminate_iff(expr: str) -> str:
+    expr = expr.strip()
+
+    if "<->" not in expr:
+        return expr
+
+    left, right = expr.split("<->")
+
+    left = left.strip()
+    right = right.strip()
+
+    part1 = f"({left} & {right})"
+    part2 = f"(~{left} & ~{right})"
+
+    return f"{part1} | {part2}"
