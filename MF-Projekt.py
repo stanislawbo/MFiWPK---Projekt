@@ -1,11 +1,15 @@
-def K(a, b): return a and b
-def A(a, b): return a or b
-def I(a, b): return (not a) or b
-def R(a, b): return a == b
+class LogicLang:
+    # Ustalamy zbiór zmiennych, które będą używane w logice
+     def __init__(self):
+        self.variables = set()
 
-OPS = {
-    "k": (2, K),
-    "a": (1, A),
-    "i": (0, I),
-    "r": (0, R),
-}
+    def run(self, code: str):
+        # Dzielimy kod na linie i przetwarzamy każdą linię
+        lines = code.splitlines()
+        # splitlines() dzieli tekst na linie, tworząc listę linii
+        for line in lines:
+            line = line.strip()
+            # strip() usuwa białe znaki z początku i końca linii
+            if not line:
+                continue  # Pomijamy puste linie
+            self.process_line(line)
