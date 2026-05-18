@@ -31,7 +31,7 @@ class LogicLang:
 
             # Deklarujemy zmienną
             if parts[0] == "var":
-                if len(parts) >= 3:
+                if "=" not in line and len(parts) > 2:
                     raise ValueError(f"Nieprawidłowa deklaracja zmiennej: {line}")
                 var_name = parts[1]
                 if var_name in self.variables:
@@ -59,10 +59,9 @@ class LogicLang:
 logic = LogicLang()
 code = """var x
 var y
-var z
+var z = x & y
 x = jeden
-y = zero
-z = x & y"""
+y = zero"""
 logic.run(code)
 print(logic.variables)  # Output: {'x', 'y', 'z'}
 
