@@ -1,22 +1,20 @@
-from ast import expr
-from email import header
-from os import name
-
-
 class LogicLang:
     # Ustalamy zbiór zmiennych, które będą używane w logice
     def __init__(self):
         self.variables = {}
 
+    # Sprawdzamy czy dana wartość jest wyrażeniem logicznym
     def is_expression(self, value: str) -> bool:
-        return any(op in value for op in ["&", "|", "~", "->", "<->"])
-
+        return any(op in value for op in ["&", "|", "~", "->"])
+    
+    # Przypisujemy wartość do zmiennej, sprawdzając czy jest to wyrażenie logiczne i konwertujemy ją do CNF
     def assign(self, name, value):
         if name not in self.variables:
             raise ValueError(f"Zmienna '{name}' nie istnieje") 
         value = self.to_cnf(value)
         self.variables[name] = value
 
+    # Uruchamiamy kod, dzieląc go na linie i przetwarzając każdą linię, obsługując deklaracje zmiennych i przypisania
     def run(self, code: str):
         # Dzielimy kod na linie i przetwarzamy każdą linię
         lines = code.splitlines()
@@ -30,26 +28,33 @@ class LogicLang:
 
             # Deklarujemy zmienną
             if parts[0] == "var":
+                # Gwarantujemy, że deklaracja jest poprawna (np. "var x" lub "var x = expression")
                 if "=" not in line and len(parts) > 2:
                     raise ValueError(f"Nieprawidłowa deklaracja zmiennej: {line}")
                 var_name = parts[1]
                 if var_name in self.variables:
                     raise ValueError(f"Zmienna '{var_name}' już istnieje.")
+                # Tutaj możemy przypisać None lub inną wartość domyślną, ponieważ zmienna została zadeklarowana, ale nie przypisano jej jeszcze wartości
                 self.variables[var_name] = None
 
+                # Jeżeli linia zawiera przypisanie, to zadajemy jej wartość/formułę logiczną
                 if "=" in line:
+                    # Dzielimy linię na dwie części: przed i po znaku "="
                     _,  value = line.split("=", 1)
-                    self.assign(var_name, value.strip())    
-            elif "=" in line:
-                name, value = line.split("=")
-                name = name.strip()
-                value = value.strip()
-                self.assign(name, value)
+                    self.assign(var_name, value.strip())   
+                
+                # Sprawdzamy, czy linia zawiera przypisanie
+                elif "=" in line:
+                    name, value = line.split("=")
+                    name = name.strip()
+                    value = value.strip()
+                    self.assign(name, value)
                 # Sprawdzamy, czy zmienna została już zadeklarowana
             else:
                 raise ValueError(f"Nieznana instrukcja: {line}")
         return self
     
+    # Funkcja zamieniająca implikację x -> y na ~x | y
     def eliminate_implication(self, expr: str) -> str:
         expr = expr.strip()
 
@@ -68,6 +73,7 @@ class LogicLang:
 
         return f"({new_left} | {right})"
 
+    # Funkcja stosująca prawa de Morgana do wyrażenia logicznego, tzn. ~(x & y) = ~x | ~y oraz ~(x | y) = ~x & ~y 
     def apply_de_morgan(self, expr: str) -> str:
         expr = expr.strip()
 
@@ -84,6 +90,7 @@ class LogicLang:
 
         return expr
 
+    # Funkcja stosująca prawa dustrybucji, tzn. x | (y & z) = (x | y) & (x | z) oraz x & (y | z) = (x & y) | (x & z)
     def distribute_or(self, expr: str) -> str:
         expr = expr.strip()
 
@@ -100,14 +107,16 @@ class LogicLang:
                 return f"({left} | {b.strip()}) & ({left} | {c.strip()})"
 
         return expr
-        
+    
+    # Funkcja konwertująca wyrażenie logiczne do postaci CNF, eliminując implikacje, stosując prawa de Morgana i prawa dystrybucji
     def to_cnf(self, expr: str) -> str:
-        expr = self.eliminate_implication(expr)
-        expr = self.apply_de_morgan(expr)
-
         prev = None
+
         while prev != expr:
             prev = expr
+
+            expr = self.eliminate_implication(expr)
+            expr = self.apply_de_morgan(expr)
             expr = self.distribute_or(expr)
 
         return expr
