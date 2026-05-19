@@ -136,7 +136,7 @@ class LogicLang:
                 else:
                     clause.append(str(var_map[lit]))
 
-        clauses.append(clause)
+            clauses.append(clause)
 
         header = f"p cnf {len(var_map)} {len(clauses)}"
 
