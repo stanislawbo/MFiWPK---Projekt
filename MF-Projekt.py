@@ -1,4 +1,5 @@
 from ast import expr
+from email import header
 from os import name
 
 
@@ -137,12 +138,20 @@ class LogicLang:
 
         clauses.append(clause)
 
+        header = f"p cnf {len(var_map)} {len(clauses)}"
+
+        body = []
+        for cl in clauses:
+            body.append(" ".join(cl) + " 0")
+
+        return header + "\n" + "\n".join(body)
+
 
 # Przykładowe użycie
 logic = LogicLang()
 code = """var x
 var y
-var z = x -> (y & z)
+var z
 """
 logic.run(code)
 print(logic.variables)  # Output: {'x', 'y', 'z'}
@@ -154,3 +163,7 @@ print(logic.variables)  # Output: {'x', 'y', 'z'}
 # a -> b - implikacja
 
 # Jako, że negacja, koniunkcja i alternatywa są jedynymi symbolami w postaci CNF, pozostaje rozpisac alternatywe na koniunkcje i negacje.
+
+expr = "(x | y) & (~x | z)"
+
+print(logic.to_dimacs(expr))
