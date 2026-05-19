@@ -4,6 +4,9 @@
 # a | b - alternatywa
 # a -> b - implikacja
 
+import code
+
+
 class LogicLang:
     # Ustalamy zbiór zmiennych, które będą używane w logice
     def __init__(self):
@@ -20,44 +23,51 @@ class LogicLang:
         value = self.to_cnf(value)
         self.variables[name] = value
 
+        if value not in ("zero", "jeden") and not self.is_expression(value):
+            raise ValueError("Dozwolone tylko zero, jeden albo wyrażenie logiczne")
+
     # Uruchamiamy kod, dzieląc go na linie i przetwarzając każdą linię, obsługując deklaracje zmiennych i przypisania
     def run(self, code: str):
         # Dzielimy kod na linie i przetwarzamy każdą linię
         lines = code.splitlines()
         # splitlines() dzieli tekst na linie, tworząc listę linii
+
         for line in lines:
             line = line.strip()
             # strip() usuwa białe znaki z początku i końca linii
             if not line:
                 continue  # Pomijamy puste linie
+
             parts = line.split()
+
+            # 🔥 DODANE: przypisanie poza var
+            if "=" in line and parts[0] != "var":
+                name, value = line.split("=", 1)
+                self.assign(name.strip(), value.strip())
+                continue
 
             # Deklarujemy zmienną
             if parts[0] == "var":
                 # Gwarantujemy, że deklaracja jest poprawna (np. "var x" lub "var x = expression")
                 if "=" not in line and len(parts) > 2:
                     raise ValueError(f"Nieprawidłowa deklaracja zmiennej: {line}")
+
                 var_name = parts[1]
+
                 if var_name in self.variables:
                     raise ValueError(f"Zmienna '{var_name}' już istnieje.")
+
                 # Tutaj możemy przypisać None lub inną wartość domyślną, ponieważ zmienna została zadeklarowana, ale nie przypisano jej jeszcze wartości
                 self.variables[var_name] = None
 
                 # Jeżeli linia zawiera przypisanie, to zadajemy jej wartość/formułę logiczną
                 if "=" in line:
-                    # Dzielimy linię na dwie części: przed i po znaku "="
-                    _,  value = line.split("=", 1)
-                    self.assign(var_name, value.strip())   
-                
-                # Sprawdzamy, czy linia zawiera przypisanie
-                elif "=" in line:
-                    name, value = line.split("=")
-                    name = name.strip()
-                    value = value.strip()
-                    self.assign(name, value)
-                # Sprawdzamy, czy zmienna została już zadeklarowana
+                    _, value = line.split("=", 1)
+                    self.assign(var_name, value.strip())
+
             else:
                 raise ValueError(f"Nieznana instrukcja: {line}")
+
         return self
     
     # Funkcja zamieniająca implikację x -> y na ~x | y
@@ -169,7 +179,9 @@ class LogicLang:
 # Przykładowe użycie
 logic = LogicLang()
 code = """ var x
+x = zero
 var y
+y = jeden
 var z """
 logic.run(code)
 print(logic.variables)  # Output: {'x', 'y', 'z'}
