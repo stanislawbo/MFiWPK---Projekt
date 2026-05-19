@@ -174,6 +174,11 @@ class LogicLang:
             body.append(" ".join(cl) + " 0")
 
         return header + "\n" + "\n".join(body)
+    
+    def run_file(self, path: str):
+        with open(path, "r", encoding="utf-8") as f:
+            code = f.read()
+        return self.run(code)
 
 
 # Przykładowe użycie
@@ -188,4 +193,9 @@ print(logic.variables)  # Output: {'x', 'y', 'z'}
 
 expr = "(x | y) & (~x | z)"
 
-print(logic.to_dimacs(expr))
+#print(logic.to_dimacs(expr))
+
+logic = LogicLang()
+logic.run_file("input.txt")
+
+print(logic.to_dimacs(logic.variables["z"]))

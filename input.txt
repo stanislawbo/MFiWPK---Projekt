@@ -1,0 +1,6 @@
+var x
+var y
+var z
+x = jeden
+y = zero
+z = x & y
