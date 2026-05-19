@@ -110,6 +110,32 @@ class LogicLang:
             expr = self.distribute_or(expr)
 
         return expr
+    
+    def to_dimacs(self, expr: str) -> str:
+        expr = expr.strip()
+
+        # 1. zbierz zmienne
+        vars_list = sorted(self.variables.keys())
+        var_map = {v: i + 1 for i, v in enumerate(vars_list)}
+
+        # 2. CNF → klauzule (AND dzieli)
+        clauses_raw = [c.strip() for c in expr.split("&")]
+
+        clauses = []
+
+        for c in clauses_raw:
+            c = c.replace("(", "").replace(")", "")
+            literals = [l.strip() for l in c.split("|")]
+
+            clause = []
+            for lit in literals:
+                if lit.startswith("~"):
+                    v = lit[1:]
+                    clause.append(str(-var_map[v]))
+                else:
+                    clause.append(str(var_map[lit]))
+
+        clauses.append(clause)
 
 
 # Przykładowe użycie
