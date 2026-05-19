@@ -1,3 +1,9 @@
+# Operatory
+# ~a  - negacja
+# a & b - koniunkcja
+# a | b - alternatywa
+# a -> b - implikacja
+
 class LogicLang:
     # Ustalamy zbiór zmiennych, które będą używane w logice
     def __init__(self):
@@ -121,23 +127,26 @@ class LogicLang:
 
         return expr
     
+    # Funkcja konwertująca wyrażenie logiczne w postaci CNF do formatu DIMACS, który jest standardowym formatem dla problemów SAT
     def to_dimacs(self, expr: str) -> str:
         expr = expr.strip()
 
-        # 1. zbierz zmienne
+        # Zbieramy zmienne
         vars_list = sorted(self.variables.keys())
         var_map = {v: i + 1 for i, v in enumerate(vars_list)}
 
-        # 2. CNF → klauzule (AND dzieli)
+        # Dzielimy całość na klauzule, które są oddzielone operatorem & - and
         clauses_raw = [c.strip() for c in expr.split("&")]
 
         clauses = []
 
+        # Dla każdej klauzuli dzielimy ją na literały, które są oddzielone operatorem | - or
         for c in clauses_raw:
             c = c.replace("(", "").replace(")", "")
             literals = [l.strip() for l in c.split("|")]
 
             clause = []
+            # Dla każdego literału sprawdzamy, czy jest negacją (zaczyna się od ~) i mapujemy go na odpowiednią liczbę całkowitą zgodnie z mapowaniem zmiennych
             for lit in literals:
                 if lit.startswith("~"):
                     v = lit[1:]
@@ -147,8 +156,9 @@ class LogicLang:
 
             clauses.append(clause)
 
+        # Tworzymy nagłówek w formacie DIMACS, który zawiera liczbę zmiennych i liczbę klauzul
         header = f"p cnf {len(var_map)} {len(clauses)}"
-
+        
         body = []
         for cl in clauses:
             body.append(" ".join(cl) + " 0")
@@ -158,20 +168,11 @@ class LogicLang:
 
 # Przykładowe użycie
 logic = LogicLang()
-code = """var x
+code = """ var x
 var y
-var z
-"""
+var z """
 logic.run(code)
 print(logic.variables)  # Output: {'x', 'y', 'z'}
-
-# Operatory
-# ~a  - negacja
-# a & b - koniunkcja
-# a | b - alternatywa
-# a -> b - implikacja
-
-# Jako, że negacja, koniunkcja i alternatywa są jedynymi symbolami w postaci CNF, pozostaje rozpisac alternatywe na koniunkcje i negacje.
 
 expr = "(x | y) & (~x | z)"
 
