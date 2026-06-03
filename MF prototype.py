@@ -98,23 +98,14 @@ class Logical:
         return ~Logical.eliminate_implication(self.left) | Logical.eliminate_implication(self.right)
 
     def distribute_or(self):
+        if len(self.clauses) == 1:
+            return self
         # Requires the formula to be in a form CNF | CNF
-        # print('Formula to distribute or:', self, self.left.clauses, self.right.clauses)
-        # Część (~y | z) nie ma klauzul w tej funkcji, pomimo tego, że ma po prostu
         res = T
         for cl in self.left.clauses:
             for cr in self.right.clauses:
-                print('cl, cr =', cl, cl.clauses, cr, cr.clauses)
-                print('tmp before = ', res, res.clauses)
                 new_clause = cl | cr
-                print('new =', new_clause, new_clause.clauses)
                 res &= new_clause
-                print('tmp after = ', res, res.clauses)
-        # for i in range(len(self.left.clauses)):
-        #     for j in range(len(self.right.clauses)):
-        #         print('tmp = ', res, self.left.clauses[i].clauses, self.right.clauses[j].clauses)
-        #         res &= (self.left.clauses[i] | self.right.clauses[j])
-        print('res =', res, res.clauses)
         return res
 
     def distribute_orr(self):
@@ -169,13 +160,13 @@ x, y, z = Logical(name = 'x'), Logical(name = 'y'), Logical(name = 'z')
 # phi = x | y >> (z & ~x)
 # print('phi =', phi)
 #
-# print('Test 0:', Logical.to_cnf(x))
-# print('Test 0.(9)8:', Logical.to_cnf((x | y) & z))
-# print('Test 0.(9):', Logical.to_cnf((x & y) | z))
-# print('Test 1:', Logical.to_cnf(~(x | (y & z))))
-# print('Test 2:', Logical.to_cnf((x & y) | (~x & z)))
+print('Test 0:', Logical.to_cnf(x))
+print('Test 0.(9)8:', Logical.to_cnf((x | y) & z))
+print('Test 0.(9):', Logical.to_cnf((x & y) | z))
+print('Test 1:', Logical.to_cnf(~(x | (y & z))))
+print('Test 2:', Logical.to_cnf((x & y) | (~x & z)))
 print('Test 3:', Logical.to_cnf(x >> (y >> z)))
-# print('Test 3.1:', Logical.to_cnf(x >> (~y >> z)))
+print('Test 3.1:', Logical.to_cnf(x >> (~y >> z)))
 # print((~x).clauses, (~y | z).clauses)
 
 while True:
