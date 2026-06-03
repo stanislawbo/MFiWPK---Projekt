@@ -299,6 +299,7 @@ Do zrobienia:
  > upraszczanie klauzul, gdy występuje w nich zmienna i jej negacja naraz
  > dodać możliwość wywołania to_cnf przez użytkownika
  > dodanie funkcji tłumaczącej formuły w postaci CNF do formatu dimacs
+ > niewymagane, choć zalecane: naprawić funkcję distribute_or tak, żeby działała bez pierwszego if'a
 ###
  > przeciwdziałania błędom systemowym po niepoprawnym inpucie użytkownika, na przykład:
   - niepozwolenie używania operatorów z pythona w nazwach zmiennych
