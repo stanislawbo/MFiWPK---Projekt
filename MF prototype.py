@@ -219,14 +219,15 @@ T = Logical(name = 'True')
 F = Logical(name = 'False')
 x, y, z = Logical(name = 'x'), Logical(name = 'y'), Logical(name = 'z')
 
-print('Test 0:', Logical.to_cnf(x))
+"""print('Test 0:', Logical.to_cnf(x))
 print('Test 0.(9)8:', Logical.to_cnf((x | y) & z))
 print('Test 0.(9):', Logical.to_cnf((x & y) | z))
 print('Test 1:', Logical.to_cnf(~(x | (y & z))))
 print('Test 2:', Logical.to_cnf((x & y) | (~x & z)))
-print('Test 3:', Logical.to_cnf(x >> (y >> z)))
+print('Test 3:', Logical.to_cnf(x >> (y >> z)))"""
 
-phi = (x | y | z) & (~x | ~z) & (~y | z)
+phi = (x & y) | (x & ~z)
+phi = Logical.to_cnf(phi)
 
 while True:
     cmd_full = input('')  # Wczytywanie inputu użytkownika z konsoli ...
@@ -296,11 +297,15 @@ while True:
 Do zrobienia:
  > usunięcie powielonych nawiasów przy wypisywaniu formuł
  > dodać implikacje do remove_negation
- > upraszczanie klauzul, gdy występuje w nich zmienna i jej negacja naraz
+ > upraszczanie klauzul, gdy występuje w nich zmienna i jej negacja naraz, lub ta sama zmienna kilkukrotnie
  > dodać możliwość wywołania to_cnf przez użytkownika
  > dodanie funkcji tłumaczącej formuły w postaci CNF do formatu dimacs
- > niewymagane, choć zalecane: naprawić funkcję distribute_or tak, żeby działała bez pierwszego if'a
+ > poprawić funkcję to_cnf (nie działa dla (x & y) | (x & ~z)) - winnym może być distribute_or
 ###
  > przeciwdziałania błędom systemowym po niepoprawnym inpucie użytkownika, na przykład:
   - niepozwolenie używania operatorów z pythona w nazwach zmiennych
+  
+ > Na koniec:
+  - zaktualizować polecenie "help"
+  - zrobić plik .exe?
 """
