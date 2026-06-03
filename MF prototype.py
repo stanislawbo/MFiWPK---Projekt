@@ -118,10 +118,10 @@ class Logical:
         """
         if self in Logical.variables:  # Jeżeli negujemy zmienną, to jej negacja jest również klauzulą
             return Logical(None, '~', self, clauses = [Logical(None, '~', self.clauses[0])])
-        
+
         elif self.op == '~' and self.right in Logical.variables:  # Jeżeli negujemy negację zmiennej, zwraca tę zmienną
             return self.right
-        
+
         return self.right if self.op == '~' else Logical(None, '~', self)  # W pozostałych przypadkach zwracamy negację
                                                                                     # z uwzględnieniem przypadku podwójnej negacji
 
@@ -138,7 +138,7 @@ class Logical:
             return Logical.eliminate_implication(self.left) | Logical.eliminate_implication(self.right)
         elif self.op == '~':
             return ~Logical.eliminate_implication(self.right)
-        
+
         # W pozostałym przypadku (implikacja), zastępujemy formułę "X => Y" przez "~X | Y" i rekurencyjnie przechodzimy głebiej
         return ~Logical.eliminate_implication(self.left) | Logical.eliminate_implication(self.right)
 
@@ -161,50 +161,70 @@ class Logical:
         Funkcja przerzucająca w formule negacje na poziom pojedynczych zmiennych
         :return: Równoważna postać formuły wejściowej, z negacjami tylko bezpośrednio przy zmiennych
         """
-        if self.op != '~':  # Usuwamy podwójne negacje
+        if self.op == '~':  # W przypadku, gdy formuła jest zanegowana ...
+            if self.right.op == '~':  # Usuwamy podwójne negacje
+                return Logical.remove_negation(self.right)
+            if self.right.op is None:  # Jeżeli negacja zmiennej, zwracamy tę negację
+                return self
+            elif self.right.op == '&':  # Dla koniunkcji i alternatywy stosujemy prawa de Morgana i schodzimy rekurencyjnie
+                return ~Logical.remove_negation(self.right.left) | ~Logical.remove_negation(self.right.right)
+            elif self.right.op == '|':
+                return ~Logical.remove_negation(self.right.left) & ~Logical.remove_negation(self.right.right)
+            else:
+                raise Exception('Błąd: Niepoprawna formuła. Spróbuj najpierw usunąć implikacje')
+
+        else:  # Jeżeli formuła nie jest zanegowana ...
+            if self.op is None:  # Jeżeli to zmienna, zwracamy ją
+                return self
+            elif self.op == '&':  # Dla koniunkcji i alternatywy schodzimy rekurencyjnie
+                return Logical.remove_negation(self.left) & Logical.remove_negation(self.right)
+            elif self.op == '|':
+                return Logical.remove_negation(self.left) | Logical.remove_negation(self.right)
+            else:
+                raise Exception('Błąd: Niepoprawna formuła. Spróbuj najpierw usunąć implikacje')
+
+    def to_cnf_body(self):
+        """
+        Funkcja pomocnicza do funkcji to_cnf. Przyjmuje jako argument formułę bez implikacji, w której negacje
+        występują jedynie przy zmiennych. Zwraca jej postać CNF
+        :return: Równoważna formuła w postaci CNF
+        """
+        if self.op == '&':  # Jeżeli jest ona koniunkcją, wystarczy obie strony sprowadzić do postaci CNF
+            return Logical.to_cnf_body(self.left) & Logical.to_cnf_body(self.right)
+        elif self.op == '|':  # Jeżeli jest alternatywą, to obie strony sprowadza do postaci CNF i łączy prawem rozdzielności
+            return Logical.distribute_or(Logical.to_cnf_body(self.left) | Logical.to_cnf_body(self.right))
+        else:  # Zwracamy pojedyncze zmienne lub ich negacje
             return self
-        elif self.right.op is None:  # Jeżeli negacja zmiennej, zwracamy ją
-            return self
-        elif self.right.op == '&':  # Dla koniunkcji i alternatywy stosujemy prawa de Morgana
-            return ~self.right.left | ~self.right.right
-        elif self.right.op == '|':
-            return ~self.right.left & ~self.right.right
-        else:
-            raise Exception('Błąd: Niepoprawna formuła. Spróbuj najpierw usunąć implikacje')# Mak
 
     def to_cnf(self):
         """
         Funkcja przekształcająca formułę do postaci CNF
         :return: Równoważna formuła w postaci CNF
         """
-        no_impl = Logical.eliminate_implication(self)  # Usuwamy implikacje z formuły
-        # Przechodzi rekurencyjnie po formule
-        if no_impl.op == '&':  # Jeżeli jest ona koniunkcją, wystarczy obie strony sprowadzić do postaci CNF
-            return Logical.to_cnf(no_impl.left) & Logical.to_cnf(no_impl.right)
-        elif no_impl.op == '|':  # Jeżeli jest alternatywą, to obie strony sprowadza do postaci CNF i łączy prawem rozdzielności
-            return Logical.distribute_or(Logical.to_cnf(no_impl.left) | Logical.to_cnf(no_impl.right))
-        elif no_impl.op == '~':  # Jeżeli jest negacją, to...
-            if no_impl.right.op is None:  # albo jest negacją zmiennej i w takim przypadku zwraca tę negację, ...
-                return no_impl
-            return Logical.to_cnf(Logical.remove_negation(no_impl))  # albo sprowadza do CNF po przełożeniu negacji na niższy poziom
-        else:
-            return no_impl  # Zwracamy pojedyncze zmienne
+        formula = Logical.remove_negation(Logical.eliminate_implication(self))
+        return Logical.to_cnf_body(formula)
+
 
 T = Logical(name = 'True')
 F = Logical(name = 'False')
 x, y, z = Logical(name = 'x'), Logical(name = 'y'), Logical(name = 'z')
 
-print(~(~y))
+print('Test 0:', Logical.to_cnf(x))
+print('Test 0.(9)8:', Logical.to_cnf((x | y) & z))
+print('Test 0.(9):', Logical.to_cnf((x & y) | z))
+print('Test 1:', Logical.to_cnf(~(x | (y & z))))
+print('Test 2:', Logical.to_cnf((x & y) | (~x & z)))
+print('Test 3:', Logical.to_cnf(x >> (y >> z)))
 
 while True:
     cmd_full = input('')  # Wczytywanie inputu użytkownika z konsoli ...
     cmd = cmd_full.split()  # i dzielenie na części rozdzielone spacjami
-    
+
     if cmd[0] == 'var':  # Jeżeli pierwszą częścią jest słowo kluczowe "var", użytkownik chce zadeklarować zmienne
         if len(cmd) == 2:  # Jeżeli użytkownik deklaruje tylko jedną zmienną, nadajemy jej nazwę taką, jak podał użytkownik
             exec(f'{cmd[1]} = Logical(name = \'{cmd[1]}\')')
             print(f'System: Zadeklarowano zmienną {cmd[1]}')
-            
+
         elif cmd[2] == 'for' and cmd[5] == 'to' and len(cmd) == 7:  # Jeżeli użytkownik chce zadeklarować kilka zmiennych naraz ...
             range_l = int(cmd[4])  # zczytujemy granice indeksownia
             range_h = int(cmd[6])
@@ -221,7 +241,7 @@ while True:
             for var in vars:  # i deklarujemy każdą z osobna
                 exec(f'{var} = Logical(name = \'{var}\')')
             print(f'System: Zadeklarowano zmienne {vars[0]}, ..., {vars[-1]}')
-            
+
         else:  # Niepoprawna składnia prowadzi do błędu
             print('System: Niepoprawna składnia')
 
@@ -281,10 +301,9 @@ while True:
 
     else:
         print('System: Nieznane polecenie')
-        
+
 """
 Do zrobienia
- > rekurencyjna wersja remove_negation
  > usunięcie powielonych nawiasów przy wypisywaniu formuł
  > poprawne wypisywanie formuł w postaci CNF
  > dodać implikacje do remove_negation
