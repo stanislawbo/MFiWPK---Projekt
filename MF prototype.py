@@ -53,6 +53,9 @@ class Logical:
         if self.op is None:
             return self.name
         if self.op == '~':
+            if self.right.op == '~':
+                return str(self.right.right)
+            return f'~{self.right}'
             return f'~{self.right}' if self.right.right == self.right else f'~({self.right})'
         return f'({self.left} {self.op} {self.right})'
 
@@ -80,7 +83,7 @@ class Logical:
         if self in Logical.variables:
             return Logical(None, '~', self, clauses = [Logical(None, '~', self.clauses[0])])
         elif self.op == '~' and self.right in Logical.variables:
-            return Logical(None, None, self, clauses=[Logical(None, None, self.clauses[0])])
+            return Logical(None, None, self.right, name = self.right.right.name, clauses = [Logical(None, None, None, self.right.clauses[0])])
         return self.right if self.op == '~' else Logical(None, '~', self)
 
     def eliminate_implication(self):
@@ -99,11 +102,19 @@ class Logical:
         # print('Formula to distribute or:', self, self.left.clauses, self.right.clauses)
         # Część (~y | z) nie ma klauzul w tej funkcji, pomimo tego, że ma po prostu
         res = T
-        for i in range(len(self.left.clauses)):
-            for j in range(len(self.right.clauses)):
-                # print('tmp = ', res, self.left.clauses[i].clauses, self.right.clauses[j].clauses)
-                res &= (self.left.clauses[i] | self.right.clauses[j])
-        # print('res =', res, res.clauses)
+        for cl in self.left.clauses:
+            for cr in self.right.clauses:
+                print('cl, cr =', cl, cl.clauses, cr, cr.clauses)
+                print('tmp before = ', res, res.clauses)
+                new_clause = cl | cr
+                print('new =', new_clause, new_clause.clauses)
+                res &= new_clause
+                print('tmp after = ', res, res.clauses)
+        # for i in range(len(self.left.clauses)):
+        #     for j in range(len(self.right.clauses)):
+        #         print('tmp = ', res, self.left.clauses[i].clauses, self.right.clauses[j].clauses)
+        #         res &= (self.left.clauses[i] | self.right.clauses[j])
+        print('res =', res, res.clauses)
         return res
 
     def distribute_orr(self):
@@ -155,16 +166,16 @@ F = Logical(name = 'False')
 x, y, z = Logical(name = 'x'), Logical(name = 'y'), Logical(name = 'z')
 # phi = Logical(A, '=>', K, name = 'phi')
 # print('phi = (x & y) => (z | ~x)')
-
-phi = x | y >> (z & ~x)
-print('phi =', phi)
-
-print('Test 0:', Logical.to_cnf(x))
-print('Test 0.(9)8:', Logical.to_cnf((x | y) & z))
-print('Test 0.(9):', Logical.to_cnf((x & y) | z))
-print('Test 1:', Logical.to_cnf(~(x | (y & z))))
-print('Test 2:', Logical.to_cnf((x & y) | (~x & z)))
+# phi = x | y >> (z & ~x)
+# print('phi =', phi)
+#
+# print('Test 0:', Logical.to_cnf(x))
+# print('Test 0.(9)8:', Logical.to_cnf((x | y) & z))
+# print('Test 0.(9):', Logical.to_cnf((x & y) | z))
+# print('Test 1:', Logical.to_cnf(~(x | (y & z))))
+# print('Test 2:', Logical.to_cnf((x & y) | (~x & z)))
 print('Test 3:', Logical.to_cnf(x >> (y >> z)))
+# print('Test 3.1:', Logical.to_cnf(x >> (~y >> z)))
 # print((~x).clauses, (~y | z).clauses)
 
 while True:
