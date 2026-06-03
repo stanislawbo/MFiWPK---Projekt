@@ -257,40 +257,18 @@ while True:
         print('System: Ending current run')
         break
 
-    elif len(cmd) > 2 and cmd[1] == '=':  #  tym przypadku, użytkownik chce utorzyć formułę logiczną
-        ''' ----------========== To prawie na pewno da się lepiej ==========---------- '''
-        formula = ''.join(cmd[2:]).replace('=>', '>>')
-        print(formula)
-        bracket_count = 0
-        correct_formula = False
-        for i in range(len(formula)):
-            if formula[i] == '(':
-                bracket_count += 1
-            elif formula[i] == ')':
-                bracket_count -= 1
-
-            if bracket_count == 0:
-                correct_formula = True
-                formula_left = formula[:i + 1]
-                if formula[i + 1] in ('&', '|'):
-                    formula_op = formula[i + 1]
-                    formula_right = formula[i + 2:]
-                elif formula[i + 1 : i + 3] == '>>':
-                    formula_op = '=>'
-                    formula_right = formula[i + 3:]
-                break
-        if not correct_formula:
-            print('Error: Check parenthesis')
-            break
-        # print(formula_left, formula_op, formula_right)
-        line = f'{cmd[0]} = Logical({formula_left}, \'{formula_op}\', {formula_right})'
-        print(line)
-        try:
-            exec(line)
-            print('Created a formula')
+    elif len(cmd) > 2 and cmd[1] == '=':  # W tym przypadku użytkownik chce utworzyć formułę logiczną
+        formula = ''.join(cmd[2:]).replace('=>', '>>')  # Podmieniamy w inpucie "=>" na ">>"
+        try:  # Wykonujemy podmieniony input jako polecenie, żeby stworzyć formułę
+            exec(f'{cmd[0]} = {formula}')
+            print('System: Utworzono formułę')
         except NameError as e:
             missing = str(e).split("'", 2)[1]
-            print(f'Error: Variable {missing} not declared')
+            print(f'Błąd: Zmienna {missing} nie jest zadeklarowana')
+        except SyntaxError:
+            print('Błąd: Sprawdź nawiasy')
+        except TypeError:
+            print('Błąd: Niepoprawny operator')
 
     elif cmd[0] in ['help', '?'] and len(cmd) == 1:  # Jeżeli polecenie to "help" lub "?", wyświetla pomoc dotyczącą możliwych poleceń
         print('Użyj \'var <nazwa zmiennej>\', żeby zadeklarować zmienną')
@@ -303,9 +281,11 @@ while True:
         print('System: Nieznane polecenie')
 
 """
-Do zrobienia
+Do zrobienia:
  > usunięcie powielonych nawiasów przy wypisywaniu formuł
  > poprawne wypisywanie formuł w postaci CNF
  > dodać implikacje do remove_negation
- > zoptymalizować tworzenie formuł po inpucie użytkownika
+###
+ > przeciwdziałania błędom systemowym po niepoprawnym inpucie użytkownika:
+  - niepozwolenie używania operatorów z pythona w nazwach zmiennych
 """
