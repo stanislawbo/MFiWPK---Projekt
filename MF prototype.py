@@ -1,4 +1,5 @@
 counter = 1
+
 def declare_variable(variable_name):
     """
     Deklaracja zmiennej, której można później używać w formułach logicznych
@@ -49,18 +50,11 @@ class Logical:
         else:
             print('Error: Something went wrong. Formula not created')
 
-    def __str__(self, cnf = False):
+    def __str__(self):
         """
         Definicja sposobu wypisywania formuł
-        :param cnf: Czy formuła jest w postaci CNF; domyślnie False
         :return: Formuła w postaci napisu
         """
-        # Need to fix extra parentheses in multi-level formulas
-        if cnf:
-            cnf_form = self.clauses[0]
-            for clause in self.clauses[1]:
-                cnf_form = cnf_form | clause
-            return cnf_form
 
         if self.op is None:  # Pojedyncze zmienne wypisujemy jako ich atrybuty "name"
             return self.name
@@ -74,6 +68,22 @@ class Logical:
 
     def __repr__(self):  # Wypisywanie zmiennych w tablicach, np. w atrybucie clauses
         return str(self)
+
+    def string(self, cnf = False):
+        """
+        Definicja sposobu wypisywania formuł z możliwością wypisania w postaci CNF (bez zbędnych nawiasów)
+        :param cnf: Czy formuła jest w postaci CNF; domyślnie False
+        :return: Formuła w postaci napisu
+        """
+        if cnf:
+            s = str(self.clauses[0])
+            for clause in self.clauses[1:]:
+                s += ('&' + str(clause))
+            s = s.replace('(', '').replace(')', '').replace('&', ') & (')
+            s = '(' + s + ')'
+            print(s)
+        else:
+            str(self)
 
     def __and__(self, other):
         """
@@ -216,6 +226,8 @@ print('Test 1:', Logical.to_cnf(~(x | (y & z))))
 print('Test 2:', Logical.to_cnf((x & y) | (~x & z)))
 print('Test 3:', Logical.to_cnf(x >> (y >> z)))
 
+phi = (x | y | z) & (~x | ~z) & (~y | z)
+
 while True:
     cmd_full = input('')  # Wczytywanie inputu użytkownika z konsoli ...
     cmd = cmd_full.split()  # i dzielenie na części rozdzielone spacjami
@@ -247,7 +259,7 @@ while True:
 
     elif cmd[0] == 'print':  # Jeżeli polecenie zaczyna się od słowa kluczowego "print", użytkownik chce wypisać formułę
         if len(cmd) == 3 and cmd[2] == 'cnf':  # Jeżeli chce, wypisuje ją w postaci CNF
-            exec(f'print({cmd[1]}, True)')
+            exec(f'Logical.string({cmd[1]}, True)')
         elif len(cmd) == 2:  # W przeciwnym przypadku wypisuje ją normalnie
             exec(f'print({cmd[1]})')
         else:  # Niepoprawna składnia prowadzi do błędu
@@ -283,9 +295,11 @@ while True:
 """
 Do zrobienia:
  > usunięcie powielonych nawiasów przy wypisywaniu formuł
- > poprawne wypisywanie formuł w postaci CNF
  > dodać implikacje do remove_negation
+ > upraszczanie klauzul, gdy występuje w nich zmienna i jej negacja naraz
+ > dodać możliwość wywołania to_cnf przez użytkownika
+ > dodanie funkcji tłumaczącej formuły w postaci CNF do formatu dimacs
 ###
- > przeciwdziałania błędom systemowym po niepoprawnym inpucie użytkownika:
+ > przeciwdziałania błędom systemowym po niepoprawnym inpucie użytkownika, na przykład:
   - niepozwolenie używania operatorów z pythona w nazwach zmiennych
 """
