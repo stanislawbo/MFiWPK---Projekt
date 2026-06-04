@@ -12,7 +12,7 @@ def declare_variable(variable_name):
 
 class Logical:
     variables = {}
-    def __init__(self, left = None, op = None, right = None, name = None, clauses = []):
+    def __init__(self, left = None, op = None, right = None, name = None, clauses = None):
         """
         Definicja wyrażenia logicznego
         :param left: Lewa strona wyrażenia (pusta w przypadku negacji i wyrażeń będących jedną zmienną)
@@ -38,14 +38,17 @@ class Logical:
             self.op = op
             self.right = right
             self.name = name
-            self.clauses = clauses
+            if self.right.op is None:
+                self.clauses = [self]
+            else:
+                self.clauses = [] if clauses is None else clauses
 
         elif op in ('|', '&', '=>'):  # Koniunkcje, alternatywy i implikacje
             self.left = left
             self.op = op
             self.right = right
             self.name = name
-            self.clauses = clauses
+            self.clauses = [] if clauses is None else clauses
 
         else:
             print('Error: Something went wrong. Formula not created')
@@ -126,14 +129,7 @@ class Logical:
         Nadpisanie operatora "~" jako spójnika logicznego modelującego implikację
         :return: Negacja formuły
         """
-        if self in Logical.variables:  # Jeżeli negujemy zmienną, to jej negacja jest również klauzulą
-            return Logical(None, '~', self, clauses = [Logical(None, '~', self.clauses[0])])
-
-        elif self.op == '~' and self.right in Logical.variables:  # Jeżeli negujemy negację zmiennej, zwraca tę zmienną
-            return self.right
-
-        return self.right if self.op == '~' else Logical(None, '~', self)  # W pozostałych przypadkach zwracamy negację
-                                                                                    # z uwzględnieniem przypadku podwójnej negacji
+        return self.right if self.op == '~' else Logical(None, '~', self)  # Zwracamy odpowiednią formułę z uwzględnieniem przypadku podwójnej negacji
 
     def eliminate_implication(self):
         """
@@ -154,10 +150,14 @@ class Logical:
 
     def distribute_or(self):
         """
-        Funkcja korzystająca z praw rozdzielności dla koniunkcji formuł w postaci CNF
+        Funkcja korzystająca z praw rozdzielności dla alternatywy formuł w postaci CNF
         :return: Formuła wejściowa w równoważnej postaci CNF
         """
-        if len(self.clauses) == 1:  # Dodane, żeby pozbyć się błędu, potencjalnie niepotrzebne w przyszłości
+        if self.op != '|':  # Przyjmuje tylko alternatywy
+            print('System: Formuła musi być alternatywą')
+            return self
+
+        elif len(self.clauses) == 1:  # Dodane, żeby pozbyć się błędu, potencjalnie niepotrzebne w przyszłości
             return self
         res = T  # Startujemy z pustej formuły...
         for cl in self.left.clauses:
@@ -217,7 +217,7 @@ class Logical:
 
 T = Logical(name = 'True')
 F = Logical(name = 'False')
-x, y, z = Logical(name = 'x'), Logical(name = 'y'), Logical(name = 'z')
+w, x, y, z = Logical(name = 'w'), Logical(name = 'x'), Logical(name = 'y'), Logical(name = 'z')
 
 """print('Test 0:', Logical.to_cnf(x))
 print('Test 0.(9)8:', Logical.to_cnf((x | y) & z))
@@ -225,9 +225,6 @@ print('Test 0.(9):', Logical.to_cnf((x & y) | z))
 print('Test 1:', Logical.to_cnf(~(x | (y & z))))
 print('Test 2:', Logical.to_cnf((x & y) | (~x & z)))
 print('Test 3:', Logical.to_cnf(x >> (y >> z)))"""
-
-phi = (x & y) | (x & ~z)
-phi = Logical.to_cnf(phi)
 
 while True:
     cmd_full = input('')  # Wczytywanie inputu użytkownika z konsoli ...
@@ -300,8 +297,8 @@ Do zrobienia:
  > upraszczanie klauzul, gdy występuje w nich zmienna i jej negacja naraz, lub ta sama zmienna kilkukrotnie
  > dodać możliwość wywołania to_cnf przez użytkownika
  > dodanie funkcji tłumaczącej formuły w postaci CNF do formatu dimacs
- > poprawić funkcję to_cnf (nie działa dla (x & y) | (x & ~z)) - winnym może być distribute_or
 ###
+ > testy poprawności działania
  > przeciwdziałania błędom systemowym po niepoprawnym inpucie użytkownika, na przykład:
   - niepozwolenie używania operatorów z pythona w nazwach zmiennych
   
