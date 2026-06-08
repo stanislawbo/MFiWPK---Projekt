@@ -10,6 +10,8 @@ def declare_variable(variable_name):
     Logical.variables[variable_name] = counter
     counter += 1
 
+_PREC = {None: 4, '~': 3, '&': 2, '|': 1, '=>': 0}
+
 class Logical:
     variables = {}
     def __init__(self, left = None, op = None, right = None, name = None, clauses = None):
@@ -54,20 +56,22 @@ class Logical:
             print('Error: Something went wrong. Formula not created')
 
     def __str__(self):
-        """
-        Definicja sposobu wypisywania formuł
-        :return: Formuła w postaci napisu
-        """
-
-        if self.op is None:  # Pojedyncze zmienne wypisujemy jako ich atrybuty "name"
+        if self.op is None:
             return self.name
-        if self.op == '~':  # W przypadku negacji...
-            if self.right.op == '~':  # jeżeli negowane wyrażenie samo w sobie jest negacją, wyrzucamy obie te negacje...
+        if self.op == '~':
+            if self.right.op == '~':
                 return str(self.right.right)
-            return f'~{self.right}'  # a jeżeli nie, to przed napisem formuły doklejamy znak ~
+            r = str(self.right)
+            if self.right.op in ('&', '|', '=>'):
+                r = f'({r})'
+            return f'~{r}'
 
-        return f'({self.left} {self.op} {self.right})'  # W pozostałych przypadkach rekurencyjnie wypisujemy lewą i prawą
-                                                        # stronę formuły z operatorem pomiędzy nimi
+        cp = _PREC[self.op]
+        l_str = f'({self.left})' if _PREC.get(self.left.op, 4) < cp else str(self.left)
+        r_str = f'({self.right})' if _PREC.get(self.right.op, 4) < cp else str(self.right)
+
+        return f'{l_str} {self.op} {r_str}'  # W pozostałych przypadkach rekurencyjnie wypisujemy lewą i prawą
+                                                    # stronę formuły z operatorem pomiędzy nimi
 
     def __repr__(self):  # Wypisywanie zmiennych w tablicach, np. w atrybucie clauses
         return str(self)
@@ -292,7 +296,6 @@ while True:
 
 """
 Do zrobienia:
- > usunięcie powielonych nawiasów przy wypisywaniu formuł
  > dodać implikacje do remove_negation
  > upraszczanie klauzul, gdy występuje w nich zmienna i jej negacja naraz, lub ta sama zmienna kilkukrotnie
  > dodać możliwość wywołania to_cnf przez użytkownika
