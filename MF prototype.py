@@ -268,9 +268,12 @@ while True:
     cmd = cmd_full.split()  # i dzielenie na części rozdzielone spacjami
 
     if cmd[0] == 'var':  # Jeżeli pierwszą częścią jest słowo kluczowe "var", użytkownik chce zadeklarować zmienne
-        if len(cmd) == 2:  # Jeżeli użytkownik deklaruje tylko jedną zmienną, nadajemy jej nazwę taką, jak podał użytkownik
-            exec(f'{cmd[1]} = Logical(name = \'{cmd[1]}\')')
-            print(f'System: Zadeklarowano zmienną {cmd[1]}')
+        if len(cmd) == 2:
+            if not cmd[1].isidentifier() or cmd[1] in ('and', 'or', 'not', 'True', 'False', 'T', 'F'):
+                print('Błąd: Niepoprawna nazwa zmiennej')
+            else:
+                exec(f'{cmd[1]} = Logical(name = \'{cmd[1]}\')')
+                print(f'System: Zadeklarowano zmienną {cmd[1]}')
 
         elif cmd[2] == 'for' and cmd[5] == 'to' and len(cmd) == 7:  # Jeżeli użytkownik chce zadeklarować kilka zmiennych naraz ...
             range_l = int(cmd[4])  # zczytujemy granice indeksownia
@@ -329,11 +332,8 @@ while True:
 
 """
 Do zrobienia:
- > upraszczanie klauzul, gdy występuje w nich zmienna i jej negacja naraz, lub ta sama zmienna kilkukrotnie
  > dodać możliwość wywołania to_cnf przez użytkownika
  > dodanie funkcji tłumaczącej formuły w postaci CNF do formatu dimacs
- > przeciwdziałania błędom systemowym po niepoprawnym inpucie użytkownika, na przykład:
-  - niepozwolenie używania operatorów z pythona w nazwach zmiennych
   
  > Na koniec:
   - testy poprawności działania
