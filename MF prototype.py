@@ -184,6 +184,8 @@ class Logical:
                 return Logical.remove_negation(~self.right.left) | Logical.remove_negation(~self.right.right)
             elif self.right.op == '|':
                 return Logical.remove_negation(~self.right.left) & Logical.remove_negation(~self.right.right)
+            elif self.right.op == '=>':
+                return Logical.remove_negation(~self.right.left) | Logical.remove_negation(~self.right.right)
             else:
                 raise Exception('Błąd: Niepoprawna formuła. Spróbuj najpierw usunąć implikacje')
 
