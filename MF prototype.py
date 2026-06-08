@@ -220,6 +220,37 @@ class Logical:
         formula = Logical.remove_negation(Logical.eliminate_implication(self))
         return Logical.to_cnf_body(formula)
 
+def simplify_clauses(self):
+    """
+    Upraszcza klauzule CNF:
+    - usuwa klauzule zawierające zmienną i jej negację (tautologie)
+    - usuwa duplikaty literałów w klauzuli
+    """
+    new_clauses = []
+    for clause in self.clauses:
+        literals = set()
+        tautology = False
+        # zbierz wszystkie literały z klauzuli
+        node = clause
+        while node.op == '|':
+            lit = str(node.right)
+            if lit in literals:
+                pass  # duplikat, pomijamy
+            elif ('~' + lit in literals) or (lit.startswith('~') and lit[1:] in literals):
+                tautology = True
+                break
+            else:
+                literals.add(lit)
+            node = node.left
+        # ostatni literał (lewy liść)
+        if not tautology:
+            lit = str(node)
+            if ('~' + lit not in literals) and not (lit.startswith('~') and lit[1:] in literals):
+                literals.add(lit)
+            new_clauses.append(literals)
+
+    self.clauses = [c for c in new_clauses if c]  # usuń puste
+    return self
 
 T = Logical(name = 'True')
 F = Logical(name = 'False')
@@ -298,7 +329,6 @@ while True:
 
 """
 Do zrobienia:
- > dodać implikacje do remove_negation
  > upraszczanie klauzul, gdy występuje w nich zmienna i jej negacja naraz, lub ta sama zmienna kilkukrotnie
  > dodać możliwość wywołania to_cnf przez użytkownika
  > dodanie funkcji tłumaczącej formuły w postaci CNF do formatu dimacs
