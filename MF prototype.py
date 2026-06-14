@@ -1,5 +1,6 @@
 counter = -1
 
+
 def declare_variable(variable):
     """
     Deklaracja zmiennej, której można później używać w formułach logicznych
@@ -10,11 +11,14 @@ def declare_variable(variable):
     Logical.variables[variable.name] = counter
     counter += 1
 
+
 _PREC = {None: 4, '~': 3, '&': 2, '|': 1, '=>': 0}
+
 
 class Logical:
     variables = {}
-    def __init__(self, left = None, op = None, right = None, name = None, clauses = None):
+
+    def __init__(self, left=None, op=None, right=None, name=None, clauses=None):
         """
         Definicja wyrażenia logicznego
         :param left: Lewa strona wyrażenia (pusta w przypadku negacji i wyrażeń będących jedną zmienną)
@@ -95,12 +99,12 @@ class Logical:
         r_str = f'({self.right})' if _PREC.get(self.right.op, 4) < cp else str(self.right)
 
         return f'{l_str} {self.op} {r_str}'  # W pozostałych przypadkach rekurencyjnie wypisujemy lewą i prawą
-                                                    # stronę formuły z operatorem pomiędzy nimi
+        # stronę formuły z operatorem pomiędzy nimi
 
     def __repr__(self):  # Wypisywanie zmiennych w tablicach, np. w atrybucie clauses
         return str(self)
 
-    def string(self, cnf = False):
+    def string(self, cnf=False):
         """
         Definicja sposobu wypisywania formuł z możliwością wypisania w postaci CNF (bez zbędnych nawiasów)
         :param cnf: Czy formuła jest w postaci CNF; domyślnie False
@@ -125,9 +129,11 @@ class Logical:
         if self == T:  # Koniunkcja z prawdą nie zmienia wartości formuły
             return other
 
-        if len(self.clauses) > 0 and len(other.clauses) > 0:  # Jeżeli obie formuły są w postaci CNF, to ich koniunkcja również
-            return Logical(self, '&', other, clauses = (self.clauses + other.clauses))  # a klauzule koniunkcji to klauzule
-                                                                                            # z obu formuł
+        if len(self.clauses) > 0 and len(
+                other.clauses) > 0:  # Jeżeli obie formuły są w postaci CNF, to ich koniunkcja również
+            return Logical(self, '&', other,
+                           clauses=(self.clauses + other.clauses))  # a klauzule koniunkcji to klauzule
+            # z obu formuł
         return Logical(self, '&', other)  # W pozostałych przypadkach zwraca koniunkcję bez dodatków
 
     def __or__(self, other):
@@ -151,7 +157,8 @@ class Logical:
         Nadpisanie operatora "~" jako spójnika logicznego modelującego implikację
         :return: Negacja formuły
         """
-        return self.right if self.op == '~' else Logical(None, '~', self)  # Zwracamy odpowiednią formułę z uwzględnieniem przypadku podwójnej negacji
+        return self.right if self.op == '~' else Logical(None, '~',
+                                                         self)  # Zwracamy odpowiednią formułę z uwzględnieniem przypadku podwójnej negacji
 
     def eliminate_implication(self):
         """
@@ -185,7 +192,7 @@ class Logical:
         for cl in self.left.clauses:
             for cr in self.right.clauses:
                 new_clause = cl | cr  # i dla każdej pary klauzul z lewej i prawej części dorzucamy
-                res &= new_clause     # ich alternatywę do wyniku
+                res &= new_clause  # ich alternatywę do wyniku
         return res
 
     def remove_negation(self):
@@ -273,7 +280,7 @@ class Logical:
             dimacs_content = dimacs_header + dimacs_body
             with open("dimacs.txt", "w") as f:
                 f.write(dimacs_content)
-            
+
     def simplify_clauses(self):
         """
         Upraszcza klauzule CNF:
@@ -297,19 +304,20 @@ class Logical:
 
         self.clauses = new_clauses  # usuń puste
         return self
-            
 
-T = Logical(name = 'True')
-F = Logical(name = 'False')
-w, x, y, z = Logical(name = 'w'), Logical(name = 'x'), Logical(name = 'y'), Logical(name = 'z')
 
-print('Test 0:', Logical.to_cnf(x))
-print('Test 0.(9)8:', Logical.to_cnf((x | y) & z))
-print('Test 0.(9):', Logical.to_cnf((x & y) | z))
-print('Test 1:', Logical.to_cnf(~(x | (y & z))))
-print('Test 2:', Logical.to_cnf((x & y) | (~x & z)))
-print('Test 3:', Logical.to_cnf(x >> (y >> z)))
+T = Logical(name='True')
+F = Logical(name='False')
 
+print('Użyj \'var <nazwa zmiennej>\', żeby zadeklarować zmienną')
+print('Użyj \'var <nazwa zmiennej z indeksem> for <indeks> n to m\', żeby zadeklarować kilka zmiennych naraz\n'
+      '    Przykład: var x_i for i 1 to 5')
+print('Użyj \'print <nazwa zmiennej / formuły>\', żeby ją wypisać.\n'
+      '    Dla formuł w postaci CNF, użyj dodatkowego argumentu \'cnf\', żeby wyświetlić formułę bez zbędnych nawiasów')
+print('Użyj \'to cnf <nazwa formuły>\', żeby przekształcić ją do postaci CNF')
+print('Użyj \'to dimacs <nazwa formuły w postaci CNF>\', żeby wygenerować odpowiadający jej plik dimacs')
+print('Użyj \'help\' lub \'?\', żeby wyświetlić pomoc')
+print('Użyj \'end\', żeby zamknąć program')
 while True:
     cmd_full = input('')  # Wczytywanie inputu użytkownika z konsoli ...
     cmd = cmd_full.split()  # i dzielenie na części rozdzielone spacjami
@@ -322,7 +330,8 @@ while True:
                 exec(f'{cmd[1]} = Logical(name = \'{cmd[1]}\')')
                 print(f'System: Zadeklarowano zmienną {cmd[1]}')
 
-        elif cmd[2] == 'for' and cmd[5] == 'to' and len(cmd) == 7:  # Jeżeli użytkownik chce zadeklarować kilka zmiennych naraz ...
+        elif cmd[2] == 'for' and cmd[5] == 'to' and len(
+                cmd) == 7:  # Jeżeli użytkownik chce zadeklarować kilka zmiennych naraz ...
             range_l = int(cmd[4])  # zczytujemy granice indeksownia
             range_h = int(cmd[6])
             if range_h < range_l:  # Sprawdzenie poprawności zakresu
@@ -334,7 +343,8 @@ while True:
                 print('System: Variable not indexed with given string')
                 continue
             # Jeżeli wszystko pasuje, tworzymy tablicę nazw zmiennych ...
-            vars = [cmd[1][:idx_in_var] + str(i) + cmd[1][idx_in_var + len(cmd[3]):] for i in range(range_l, range_h + 1)]
+            vars = [cmd[1][:idx_in_var] + str(i) + cmd[1][idx_in_var + len(cmd[3]):] for i in
+                    range(range_l, range_h + 1)]
             for var in vars:  # i deklarujemy każdą z osobna
                 exec(f'{var} = Logical(name = \'{var}\')')
             print(f'System: Zadeklarowano zmienne {vars[0]}, ..., {vars[-1]}')
@@ -366,7 +376,7 @@ while True:
             print('Błąd: Sprawdź nawiasy')
         except TypeError:
             print('Błąd: Niepoprawny operator')
-    
+
     elif cmd[:2] == ['to', 'cnf'] and len(cmd) == 3:
         exec(f'{cmd[2]} = Logical.to_cnf({cmd[2]})')
         print('System: Zapisano formułę w postaci CNF')
@@ -379,19 +389,12 @@ while True:
         print('Użyj \'var <nazwa zmiennej>\', żeby zadeklarować zmienną')
         print('Użyj \'var <nazwa zmiennej z indeksem> for <indeks> n to m\', żeby zadeklarować kilka zmiennych naraz\n'
               '    Przykład: var x_i for i 1 to 5')
-        print('Użyj \'print <nazwa zmiennej / formuły>\', żeby ją wypisać')
+        print('Użyj \'print <nazwa zmiennej / formuły>\', żeby ją wypisać.\n'
+              '    Dla formuł w postaci CNF, użyj dodatkowego argumentu \'cnf\', żeby wyświetlić formułę bez zbędnych nawiasów')
+        print('Użyj \'to cnf <nazwa formuły>\', żeby przekształcić ją do postaci CNF')
+        print('Użyj \'to dimacs <nazwa formuły w postaci CNF>\', żeby wygenerować odpowiadający jej plik dimacs')
+        print('Użyj \'help\' lub \'?\', żeby wyświetlić pomoc')
         print('Użyj \'end\', żeby zamknąć program')
 
     else:
         print('System: Nieznane polecenie')
-
-"""
-Do zrobienia:
- > dodać możliwość wywołania to_cnf przez użytkownika
- > dodanie funkcji tłumaczącej formuły w postaci CNF do formatu dimacs
-  
- > Na koniec:
-  - testy poprawności działania
-  - zaktualizować polecenie "help"
-  - zrobić plik .exe?
-"""
