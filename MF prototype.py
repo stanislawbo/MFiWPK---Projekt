@@ -45,7 +45,31 @@ class Logical:
             else:
                 self.clauses = [] if clauses is None else clauses
 
-        elif op in ('|', '&', '=>'):  # Koniunkcje, alternatywy i implikacje
+                elif op == '|':
+            if left == F:
+                self.left = right.left
+                self.op = right.op
+                self.right = right.right
+                self.name = right.name
+                self.clauses = right.clauses
+            elif right == F:
+                self.left = left.left
+                self.op = left.op
+                self.right = left.right
+                self.name = left.name
+                self.clauses = left.clauses
+
+            else:
+                self.left = left
+                self.op = '|'
+                self.right = right
+                self.name = name
+                if len(left.clauses) == len(right.clauses) == 1:
+                    self.clauses = [self]
+                else:
+                    self.clauses = []
+
+        elif op in ('&', '=>'):  # Koniunkcje i implikacje
             self.left = left
             self.op = op
             self.right = right
