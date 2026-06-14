@@ -10,6 +10,8 @@ def declare_variable(variable_name):
     Logical.variables[variable_name] = counter
     counter += 1
 
+_PREC = {None: 4, '~': 3, '&': 2, '|': 1, '=>': 0}
+
 class Logical:
     variables = {}
     def __init__(self, left = None, op = None, right = None, name = None, clauses = None):
@@ -54,20 +56,22 @@ class Logical:
             print('Error: Something went wrong. Formula not created')
 
     def __str__(self):
-        """
-        Definicja sposobu wypisywania formuł
-        :return: Formuła w postaci napisu
-        """
-
-        if self.op is None:  # Pojedyncze zmienne wypisujemy jako ich atrybuty "name"
+        if self.op is None:
             return self.name
-        if self.op == '~':  # W przypadku negacji...
-            if self.right.op == '~':  # jeżeli negowane wyrażenie samo w sobie jest negacją, wyrzucamy obie te negacje...
+        if self.op == '~':
+            if self.right.op == '~':
                 return str(self.right.right)
-            return f'~{self.right}'  # a jeżeli nie, to przed napisem formuły doklejamy znak ~
+            r = str(self.right)
+            if self.right.op in ('&', '|', '=>'):
+                r = f'({r})'
+            return f'~{r}'
 
-        return f'({self.left} {self.op} {self.right})'  # W pozostałych przypadkach rekurencyjnie wypisujemy lewą i prawą
-                                                        # stronę formuły z operatorem pomiędzy nimi
+        cp = _PREC[self.op]
+        l_str = f'({self.left})' if _PREC.get(self.left.op, 4) < cp else str(self.left)
+        r_str = f'({self.right})' if _PREC.get(self.right.op, 4) < cp else str(self.right)
+
+        return f'{l_str} {self.op} {r_str}'  # W pozostałych przypadkach rekurencyjnie wypisujemy lewą i prawą
+                                                    # stronę formuły z operatorem pomiędzy nimi
 
     def __repr__(self):  # Wypisywanie zmiennych w tablicach, np. w atrybucie clauses
         return str(self)
@@ -180,6 +184,8 @@ class Logical:
                 return Logical.remove_negation(~self.right.left) | Logical.remove_negation(~self.right.right)
             elif self.right.op == '|':
                 return Logical.remove_negation(~self.right.left) & Logical.remove_negation(~self.right.right)
+            elif self.right.op == '=>':
+                return Logical.remove_negation(~self.right.left) | Logical.remove_negation(~self.right.right)
             else:
                 raise Exception('Błąd: Niepoprawna formuła. Spróbuj najpierw usunąć implikacje')
 
@@ -214,6 +220,37 @@ class Logical:
         formula = Logical.remove_negation(Logical.eliminate_implication(self))
         return Logical.to_cnf_body(formula)
 
+def simplify_clauses(self):
+    """
+    Upraszcza klauzule CNF:
+    - usuwa klauzule zawierające zmienną i jej negację (tautologie)
+    - usuwa duplikaty literałów w klauzuli
+    """
+    new_clauses = []
+    for clause in self.clauses:
+        literals = set()
+        tautology = False
+        # zbierz wszystkie literały z klauzuli
+        node = clause
+        while node.op == '|':
+            lit = str(node.right)
+            if lit in literals:
+                pass  # duplikat, pomijamy
+            elif ('~' + lit in literals) or (lit.startswith('~') and lit[1:] in literals):
+                tautology = True
+                break
+            else:
+                literals.add(lit)
+            node = node.left
+        # ostatni literał (lewy liść)
+        if not tautology:
+            lit = str(node)
+            if ('~' + lit not in literals) and not (lit.startswith('~') and lit[1:] in literals):
+                literals.add(lit)
+            new_clauses.append(literals)
+
+    self.clauses = [c for c in new_clauses if c]  # usuń puste
+    return self
 
 T = Logical(name = 'True')
 F = Logical(name = 'False')
@@ -231,9 +268,12 @@ while True:
     cmd = cmd_full.split()  # i dzielenie na części rozdzielone spacjami
 
     if cmd[0] == 'var':  # Jeżeli pierwszą częścią jest słowo kluczowe "var", użytkownik chce zadeklarować zmienne
-        if len(cmd) == 2:  # Jeżeli użytkownik deklaruje tylko jedną zmienną, nadajemy jej nazwę taką, jak podał użytkownik
-            exec(f'{cmd[1]} = Logical(name = \'{cmd[1]}\')')
-            print(f'System: Zadeklarowano zmienną {cmd[1]}')
+        if len(cmd) == 2:
+            if not cmd[1].isidentifier() or cmd[1] in ('and', 'or', 'not', 'True', 'False', 'T', 'F'):
+                print('Błąd: Niepoprawna nazwa zmiennej')
+            else:
+                exec(f'{cmd[1]} = Logical(name = \'{cmd[1]}\')')
+                print(f'System: Zadeklarowano zmienną {cmd[1]}')
 
         elif cmd[2] == 'for' and cmd[5] == 'to' and len(cmd) == 7:  # Jeżeli użytkownik chce zadeklarować kilka zmiennych naraz ...
             range_l = int(cmd[4])  # zczytujemy granice indeksownia
@@ -292,13 +332,8 @@ while True:
 
 """
 Do zrobienia:
- > usunięcie powielonych nawiasów przy wypisywaniu formuł
- > dodać implikacje do remove_negation
- > upraszczanie klauzul, gdy występuje w nich zmienna i jej negacja naraz, lub ta sama zmienna kilkukrotnie
  > dodać możliwość wywołania to_cnf przez użytkownika
  > dodanie funkcji tłumaczącej formuły w postaci CNF do formatu dimacs
- > przeciwdziałania błędom systemowym po niepoprawnym inpucie użytkownika, na przykład:
-  - niepozwolenie używania operatorów z pythona w nazwach zmiennych
   
  > Na koniec:
   - testy poprawności działania
