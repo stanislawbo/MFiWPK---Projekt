@@ -249,62 +249,55 @@ class Logical:
         else:
             return Logical.literals(self.right).union(Logical.literals(self.left))
 
-        def to_dimacs(self):
-        if self.clauses == []:
-            print("Błąd: Formuła nie jest w postaci CNF")
-        else:
-            simplified = Logical.simplify_clauses(self)
-            dimacs_body = ""
-            total_literals = set()
-            for clause in simplified.clauses:
-                literals = Logical.literals(clause)
-                dimacs_body += "\n"
-                for l in literals:
-                    if l.op is None:
-                        dimacs_body += str(Logical.variables[l.name]) + " "
-                        if l.name not in total_literals:
-                            total_literals.add(l.name)
-                    elif l.op == '~':
-                        dimacs_body += str(-Logical.variables[(~l).name]) + " "
-                        if (~l).name not in total_literals:
-                            total_literals.add((~l).name)
-                dimacs_body += "0"
+    def to_dimacs(self):
+    if self.clauses == []:
+        print("Błąd: Formuła nie jest w postaci CNF")
+    else:
+        simplified = Logical.simplify_clauses(self)
+        dimacs_body = ""
+        total_literals = set()
+        for clause in simplified.clauses:
+            literals = Logical.literals(clause)
+            dimacs_body += "\n"
+            for l in literals:
+                if l.op is None:
+                    dimacs_body += str(Logical.variables[l.name]) + " "
+                    if l.name not in total_literals:
+                        total_literals.add(l.name)
+                elif l.op == '~':
+                    dimacs_body += str(-Logical.variables[(~l).name]) + " "
+                    if (~l).name not in total_literals:
+                        total_literals.add((~l).name)
+            dimacs_body += "0"
             dimacs_header = f"p cnf {len(self.clauses)} {len(total_literals)}"
             dimacs_content = dimacs_header + dimacs_body
             with open("dimacs.txt", "w") as f:
                 f.write(dimacs_content)
             
-def simplify_clauses(self):
-    """
-    Upraszcza klauzule CNF:
-    - usuwa klauzule zawierające zmienną i jej negację (tautologie)
-    - usuwa duplikaty literałów w klauzuli
-    """
-    new_clauses = []
-    for clause in self.clauses:
-        literals = set()
-        tautology = False
-        # zbierz wszystkie literały z klauzuli
-        node = clause
-        while node.op == '|':
-            lit = str(node.right)
-            if lit in literals:
-                pass  # duplikat, pomijamy
-            elif ('~' + lit in literals) or (lit.startswith('~') and lit[1:] in literals):
-                tautology = True
-                break
-            else:
-                literals.add(lit)
-            node = node.left
-        # ostatni literał (lewy liść)
-        if not tautology:
-            lit = str(node)
-            if ('~' + lit not in literals) and not (lit.startswith('~') and lit[1:] in literals):
-                literals.add(lit)
-            new_clauses.append(literals)
+        def simplify_clauses(self):
+        """
+        Upraszcza klauzule CNF:
+        - usuwa klauzule zawierające zmienną i jej negację (tautologie)
+        - usuwa duplikaty literałów w klauzuli
+        """
+        new_clauses = []
+        for clause in self.clauses:
+            literals = Logical.literals(clause)
+            tautology = False
+            # zbierz wszystkie literały z klauzuli
+            new_clause = F
+            for l in literals:
+                if ~l in literals:
+                    tautology = True
+                    break
+                new_clause |= l
 
-    self.clauses = [c for c in new_clauses if c]  # usuń puste
-    return self
+            if not tautology:
+                new_clauses.append(new_clause)
+
+        self.clauses = new_clauses  # usuń puste
+        return self
+            
 
 T = Logical(name = 'True')
 F = Logical(name = 'False')
