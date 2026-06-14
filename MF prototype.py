@@ -136,13 +136,7 @@ class Logical:
         :param other: Druga formuła, która ma zostać połączona z pierwszą za pomocą spójnika "|"
         :return: Alternatywa obu formuł
         """
-        if self == F:  # Alternatywa z fałszem nie zmienia wartości formuły
-            return other
-
-        if len(self.clauses) == len(other.clauses) == 1:  # Alternatywa klauzul jest jedną klauzulą
-            return Logical(self, '|', other, clauses = [Logical(self.clauses[0], '|', other.clauses[0])])
-
-        return Logical(self, '|', other)  # W pozostałych przypadkach zwraca alternatywę bez dodatków
+        return Logical(self, '|', other)
 
     def __rshift__(self, other):
         """
