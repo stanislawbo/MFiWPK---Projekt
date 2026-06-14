@@ -45,7 +45,7 @@ class Logical:
             else:
                 self.clauses = [] if clauses is None else clauses
 
-                elif op == '|':
+        elif op == '|':
             if left == F:
                 self.left = right.left
                 self.op = right.op
@@ -215,7 +215,7 @@ class Logical:
             elif self.op == '|':
                 return Logical.remove_negation(self.left) | Logical.remove_negation(self.right)
             elif self.op == '=>':
-                return Logical.remove_negation(~self.right.left) | Logical.remove_negation(self.right.right)
+                return Logical.remove_negation(~self.left) | Logical.remove_negation(self.right)
             else:
                 raise Exception('Błąd: Niepoprawna formuła. Spróbuj najpierw usunąć implikacje')
 
