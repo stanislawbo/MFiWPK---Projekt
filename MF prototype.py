@@ -1,13 +1,13 @@
-counter = 1
+counter = -1
 
-def declare_variable(variable_name):
+def declare_variable(variable):
     """
     Deklaracja zmiennej, której można później używać w formułach logicznych
-    :param variable_name: Nazwa zmiennej
+    :param variable: Nazwa zmiennej
     :return:
     """
     global counter
-    Logical.variables[variable_name] = counter
+    Logical.variables[variable.name] = counter
     counter += 1
 
 _PREC = {None: 4, '~': 3, '&': 2, '|': 1, '=>': 0}
@@ -28,12 +28,12 @@ class Logical:
             print('System: Nieznany operator')
 
         elif op is None:  # Wyrażenia będące pojedynczą zmienną
-            declare_variable(self)
             self.left = None
             self.op = None
             self.right = self
             self.name = name
             self.clauses = [self]
+            declare_variable(self)
 
         elif op == '~':  # Negacje wyrażeń
             self.left = None
