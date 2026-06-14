@@ -250,31 +250,31 @@ class Logical:
             return Logical.literals(self.right).union(Logical.literals(self.left))
 
     def to_dimacs(self):
-    if self.clauses == []:
-        print("Błąd: Formuła nie jest w postaci CNF")
-    else:
-        simplified = Logical.simplify_clauses(self)
-        dimacs_body = ""
-        total_literals = set()
-        for clause in simplified.clauses:
-            literals = Logical.literals(clause)
-            dimacs_body += "\n"
-            for l in literals:
-                if l.op is None:
-                    dimacs_body += str(Logical.variables[l.name]) + " "
-                    if l.name not in total_literals:
-                        total_literals.add(l.name)
-                elif l.op == '~':
-                    dimacs_body += str(-Logical.variables[(~l).name]) + " "
-                    if (~l).name not in total_literals:
-                        total_literals.add((~l).name)
-            dimacs_body += "0"
+        if self.clauses == []:
+            print("Błąd: Formuła nie jest w postaci CNF")
+        else:
+            simplified = Logical.simplify_clauses(self)
+            dimacs_body = ""
+            total_literals = set()
+            for clause in simplified.clauses:
+                literals = Logical.literals(clause)
+                dimacs_body += "\n"
+                for l in literals:
+                    if l.op is None:
+                        dimacs_body += str(Logical.variables[l.name]) + " "
+                        if l.name not in total_literals:
+                            total_literals.add(l.name)
+                    elif l.op == '~':
+                        dimacs_body += str(-Logical.variables[(~l).name]) + " "
+                        if (~l).name not in total_literals:
+                            total_literals.add((~l).name)
+                dimacs_body += "0"
             dimacs_header = f"p cnf {len(self.clauses)} {len(total_literals)}"
             dimacs_content = dimacs_header + dimacs_body
             with open("dimacs.txt", "w") as f:
                 f.write(dimacs_content)
             
-        def simplify_clauses(self):
+    def simplify_clauses(self):
         """
         Upraszcza klauzule CNF:
         - usuwa klauzule zawierające zmienną i jej negację (tautologie)
@@ -366,6 +366,14 @@ while True:
             print('Błąd: Sprawdź nawiasy')
         except TypeError:
             print('Błąd: Niepoprawny operator')
+    
+    elif cmd[:2] == ['to', 'cnf'] and len(cmd) == 3:
+        exec(f'{cmd[2]} = Logical.to_cnf({cmd[2]})')
+        print('System: Zapisano formułę w postaci CNF')
+
+    elif cmd[:2] == ['to', 'dimacs'] and len(cmd) == 3:
+        exec(f'Logical.to_dimacs({cmd[2]})')
+        print('System: Zapisano formułę do pliku')
 
     elif cmd[0] in ['help', '?'] and len(cmd) == 1:  # Jeżeli polecenie to "help" lub "?", wyświetla pomoc dotyczącą możliwych poleceń
         print('Użyj \'var <nazwa zmiennej>\', żeby zadeklarować zmienną')
