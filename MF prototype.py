@@ -222,6 +222,40 @@ class Logical:
         formula = Logical.remove_negation(Logical.eliminate_implication(self))
         return Logical.to_cnf_body(formula)
 
+    def literals(self):
+        if len(self.clauses) != 1:
+            print(f"Błąd: Podana formuła ({self}) nie jest klauzulą")
+            return set()
+        elif self.op is None or self.op == '~':
+            return {self}
+        else:
+            return Logical.literals(self.right).union(Logical.literals(self.left))
+
+        def to_dimacs(self):
+        if self.clauses == []:
+            print("Błąd: Formuła nie jest w postaci CNF")
+        else:
+            simplified = Logical.simplify_clauses(self)
+            dimacs_body = ""
+            total_literals = set()
+            for clause in simplified.clauses:
+                literals = Logical.literals(clause)
+                dimacs_body += "\n"
+                for l in literals:
+                    if l.op is None:
+                        dimacs_body += str(Logical.variables[l.name]) + " "
+                        if l.name not in total_literals:
+                            total_literals.add(l.name)
+                    elif l.op == '~':
+                        dimacs_body += str(-Logical.variables[(~l).name]) + " "
+                        if (~l).name not in total_literals:
+                            total_literals.add((~l).name)
+                dimacs_body += "0"
+            dimacs_header = f"p cnf {len(self.clauses)} {len(total_literals)}"
+            dimacs_content = dimacs_header + dimacs_body
+            with open("dimacs.txt", "w") as f:
+                f.write(dimacs_content)
+            
 def simplify_clauses(self):
     """
     Upraszcza klauzule CNF:
