@@ -104,22 +104,6 @@ class Logical:
     def __repr__(self):  # Wypisywanie zmiennych w tablicach, np. w atrybucie clauses
         return str(self)
 
-    def string(self, cnf=False):
-        """
-        Definicja sposobu wypisywania formuł z możliwością wypisania w postaci CNF (bez zbędnych nawiasów)
-        :param cnf: Czy formuła jest w postaci CNF; domyślnie False
-        :return: Formuła w postaci napisu
-        """
-        if cnf:
-            s = str(self.clauses[0])
-            for clause in self.clauses[1:]:
-                s += ('&' + str(clause))
-            s = s.replace('(', '').replace(')', '').replace('&', ') & (')
-            s = '(' + s + ')'
-            print(s)
-        else:
-            str(self)
-
     def __and__(self, other):
         """
         Nadpisanie operatora "&" jako spójnika logicznego "and"
@@ -245,7 +229,8 @@ class Logical:
         :return: Równoważna formuła w postaci CNF
         """
         formula = Logical.remove_negation(Logical.eliminate_implication(self))
-        return Logical.to_cnf_body(formula)
+        cnf = Logical.to_cnf_body(formula)
+        return Logical.simplify_clauses(cnf)
 
     def literals(self):
         if len(self.clauses) != 1:
@@ -260,10 +245,9 @@ class Logical:
         if self.clauses == []:
             print("Błąd: Formuła nie jest w postaci CNF")
         else:
-            simplified = Logical.simplify_clauses(self)
             dimacs_body = ""
             total_literals = set()
-            for clause in simplified.clauses:
+            for clause in self.clauses:
                 literals = Logical.literals(clause)
                 dimacs_body += "\n"
                 for l in literals:
@@ -312,8 +296,7 @@ F = Logical(name='False')
 print('Użyj \'var <nazwa zmiennej>\', żeby zadeklarować zmienną')
 print('Użyj \'var <nazwa zmiennej z indeksem> for <indeks> n to m\', żeby zadeklarować kilka zmiennych naraz\n'
       '    Przykład: var x_i for i 1 to 5')
-print('Użyj \'print <nazwa zmiennej / formuły>\', żeby ją wypisać.\n'
-      '    Dla formuł w postaci CNF, użyj dodatkowego argumentu \'cnf\', żeby wyświetlić formułę bez zbędnych nawiasów')
+print('Użyj \'print <nazwa zmiennej / formuły>\', żeby ją wypisać\n')
 print('Użyj \'to cnf <nazwa formuły>\', żeby przekształcić ją do postaci CNF')
 print('Użyj \'to dimacs <nazwa formuły w postaci CNF>\', żeby wygenerować odpowiadający jej plik dimacs')
 print('Użyj \'help\' lub \'?\', żeby wyświetlić pomoc')
@@ -352,13 +335,8 @@ while True:
         else:  # Niepoprawna składnia prowadzi do błędu
             print('System: Niepoprawna składnia')
 
-    elif cmd[0] == 'print':  # Jeżeli polecenie zaczyna się od słowa kluczowego "print", użytkownik chce wypisać formułę
-        if len(cmd) == 3 and cmd[2] == 'cnf':  # Jeżeli chce, wypisuje ją w postaci CNF
-            exec(f'Logical.string({cmd[1]}, True)')
-        elif len(cmd) == 2:  # W przeciwnym przypadku wypisuje ją normalnie
-            exec(f'print({cmd[1]})')
-        else:  # Niepoprawna składnia prowadzi do błędu
-            print('System: Błąd składni')
+    elif cmd[0] == 'print' and len(cmd) == 2:  # Jeżeli polecenie zaczyna się od słowa kluczowego "print", użytkownik chce wypisać formułę
+        exec(f'print({cmd[1]})')
 
     elif cmd[0] == 'end':  # Jeżeli polecenie to "end", użytkownik chce zakończyć pracę z programem
         print('System: Ending current run')
@@ -389,8 +367,7 @@ while True:
         print('Użyj \'var <nazwa zmiennej>\', żeby zadeklarować zmienną')
         print('Użyj \'var <nazwa zmiennej z indeksem> for <indeks> n to m\', żeby zadeklarować kilka zmiennych naraz\n'
               '    Przykład: var x_i for i 1 to 5')
-        print('Użyj \'print <nazwa zmiennej / formuły>\', żeby ją wypisać.\n'
-              '    Dla formuł w postaci CNF, użyj dodatkowego argumentu \'cnf\', żeby wyświetlić formułę bez zbędnych nawiasów')
+        print('Użyj \'print <nazwa zmiennej / formuły>\', żeby ją wypisać')
         print('Użyj \'to cnf <nazwa formuły>\', żeby przekształcić ją do postaci CNF')
         print('Użyj \'to dimacs <nazwa formuły w postaci CNF>\', żeby wygenerować odpowiadający jej plik dimacs')
         print('Użyj \'help\' lub \'?\', żeby wyświetlić pomoc')
