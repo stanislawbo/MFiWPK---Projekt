@@ -253,10 +253,11 @@ class Logical:
         else:
             return Logical.literals(self.right).union(Logical.literals(self.left))
 
-    def to_dimacs(self):
+    def to_dimacs(self, filename):
         """
         Funkcja tłumacząca formuły w postaci CNF na format dimacs
         :param self: Formuła w postaci CNF
+        :param filename: Nazwa pliku tekstowego, do którego formuła będzie zapisana
         :return: Brak wyjścia; generuje plik tekstowy w formacie dimacs w katalogu
         """
         if self.clauses == []:
@@ -279,7 +280,8 @@ class Logical:
                 dimacs_body += "0"
             dimacs_header = f"p cnf {len(self.clauses)} {len(total_literals)}"
             dimacs_content = dimacs_header + dimacs_body
-            with open("dimacs.txt", "w") as f:
+            print(filename + ".txt")
+            with open(filename + ".txt", "w") as f:
                 f.write(dimacs_content)
 
     def simplify_clauses(self):
@@ -334,8 +336,7 @@ while True:
                 exec(f'{cmd[1]} = Logical(name = \'{cmd[1]}\')')
                 print(f'System: Zadeklarowano zmienną {cmd[1]}')
 
-        elif cmd[2] == 'for' and cmd[5] == 'to' and len(
-                cmd) == 7:  # Jeżeli użytkownik chce zadeklarować kilka zmiennych naraz ...
+        elif cmd[2] == 'for' and cmd[5] == 'to' and len(cmd) == 7:  # Jeżeli użytkownik chce zadeklarować kilka zmiennych naraz ...
             range_l = int(cmd[4])  # zczytujemy granice indeksownia
             range_h = int(cmd[6])
             if range_h < range_l:  # Sprawdzenie poprawności zakresu
@@ -361,6 +362,7 @@ while True:
         break
 
     elif len(cmd) > 2 and cmd[1] == '=':  # W tym przypadku użytkownik chce utworzyć formułę logiczną
+
         formula = ''.join(cmd[2:]).replace('=>', '>>')  # Podmieniamy w inpucie "=>" na ">>"
         try:  # Wykonujemy podmieniony input jako polecenie, żeby stworzyć formułę
             exec(f'{cmd[0]} = {formula}')
@@ -378,7 +380,7 @@ while True:
         print('System: Zapisano formułę w postaci CNF')
 
     elif cmd[:2] == ['to', 'dimacs'] and len(cmd) == 3:
-        exec(f'Logical.to_dimacs({cmd[2]})')
+        exec(f'Logical.to_dimacs({cmd[2]}, \'{cmd[2]}\')')
         print('System: Zapisano formułę do pliku')
 
     elif cmd[0] in ['help', '?'] and len(cmd) == 1:  # Jeżeli polecenie to "help" lub "?", wyświetla pomoc dotyczącą możliwych poleceń
